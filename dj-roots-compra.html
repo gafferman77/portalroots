@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ Roots — Obtené tu licencia</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050805;
+  --green:#3ecf3e;
+  --yellow:#f5c200;
+  --red:#e03030;
+  --white:#f0f0e8;
+  --dim:#5a6a5a;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --serif:'EB Garamond',Georgia,serif;
+}
+html,body{
+  width:100%;min-height:100vh;background:var(--bg);color:var(--white);
+  font-family:var(--mono);overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;
+}
+
+.bg{position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(245,194,0,0.04) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 3px);
+}
+
+.container{position:relative;z-index:5;max-width:560px;width:100%;text-align:center;}
+
+/* BADGE TIEMPO */
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(224,48,48,0.3);background:rgba(224,48,48,0.06);
+  padding:8px 20px;margin-bottom:36px;
+  font-size:11px;letter-spacing:.2em;color:#e03030;
+}
+.badge::before{content:'◉';animation:blink .8s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* HEADLINE */
+h1{
+  font-family:var(--display);font-size:clamp(54px,10vw,90px);
+  letter-spacing:.06em;line-height:.9;color:var(--white);margin-bottom:12px;
+}
+h1 span{color:var(--yellow);}
+.sub{
+  font-family:var(--serif);font-style:italic;
+  font-size:clamp(16px,2.5vw,20px);color:rgba(240,240,232,0.45);
+  margin-bottom:40px;line-height:1.6;
+}
+
+/* STRIPE */
+.stripe{display:flex;gap:3px;justify-content:center;margin-bottom:40px;}
+.s1{width:50px;height:2px;background:var(--green);border-radius:1px;}
+.s2{width:18px;height:2px;background:var(--yellow);border-radius:1px;}
+.s3{width:8px;height:2px;background:var(--red);border-radius:1px;}
+
+/* CARD */
+.card{
+  border:1px solid rgba(245,194,0,0.25);
+  background:rgba(9,14,9,0.7);
+  padding:40px 36px;margin-bottom:24px;
+}
+.card-label{font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:16px;}
+.price{font-family:var(--display);font-size:64px;letter-spacing:.05em;color:var(--yellow);line-height:1;}
+.price-note{font-size:11px;color:var(--dim);letter-spacing:.15em;margin-bottom:28px;}
+
+.perks{list-style:none;margin-bottom:32px;text-align:left;}
+.perks li{
+  font-size:12px;color:var(--dim);padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;gap:10px;line-height:1.5;
+}
+.perks li::before{content:'▸';color:var(--green);flex-shrink:0;}
+.perks li strong{color:var(--white);}
+
+.btn-buy{
+  display:block;width:100%;font-family:var(--display);
+  font-size:24px;letter-spacing:.18em;
+  color:var(--bg);background:var(--yellow);
+  padding:18px;text-decoration:none;border:none;cursor:pointer;
+  transition:all .25s;
+}
+.btn-buy:hover{background:#ffe040;transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,194,0,0.25);}
+
+/* SOCIAL PROOF */
+.proof{
+  font-size:12px;color:var(--dim);letter-spacing:.1em;
+  margin-bottom:32px;line-height:1.8;
+}
+.proof span{color:var(--white);}
+
+/* CONTACT */
+.contact{
+  border-top:1px solid rgba(255,255,255,0.06);padding-top:28px;
+  font-size:11px;color:var(--dim);letter-spacing:.12em;line-height:2;
+}
+.contact a{color:var(--green);text-decoration:none;}
+.contact a:hover{color:#4de84d;}
+
+/* BACK */
+.back{
+  font-size:11px;color:var(--dim);letter-spacing:.14em;
+  text-decoration:none;margin-bottom:32px;display:inline-block;
+  transition:color .2s;
+}
+.back:hover{color:var(--white);}
+
+/* RENEW NOTE */
+.renew-note{
+  font-size:11px;color:var(--dim);letter-spacing:.12em;
+  padding:14px 20px;border:1px solid rgba(255,255,255,0.06);
+  margin-bottom:32px;line-height:1.7;
+}
+.renew-note strong{color:var(--yellow);}
+#renew-countdown{color:var(--yellow);}
+
+@media(max-width:500px){
+  .card{padding:28px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+
+  <a href="dj-roots-promo.html" class="back">← Ver presentación</a>
+
+  <div class="badge">PRUEBA TERMINADA</div>
+
+  <h1>TU TIEMPO<br><span>LLEGÓ.</span></h1>
+  <p class="sub">La prueba de 10 minutos terminó.<br>¿La usarías para mezclar de verdad?</p>
+
+  <div class="stripe"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+
+  <div class="renew-note">
+    ⏱ <strong>¿Querés seguir probando?</strong> En <span id="renew-countdown">24:00:00</span> se renueva tu prueba gratuita. O bien, <strong>comprala y usala siempre</strong>.
+  </div>
+
+  <div class="card">
+    <div class="card-label">LICENCIA DJ ROOTS — PAGO ÚNICO</div>
+    <div class="price">$XX</div>
+    <div class="price-note">USD · pago único · tuyo de por vida</div>
+    <ul class="perks">
+      <li><strong>Bandeja DJ completa</strong> — dos decks, crossfader, EQ, loops</li>
+      <li><strong>Búsqueda ilimitada</strong> en YouTube desde la misma app</li>
+      <li><strong>Canal de cortina</strong> para jingles y ambiente</li>
+      <li><strong>Sin suscripción</strong> — pagás una vez y es tuyo</li>
+      <li><strong>Actualizaciones</strong> incluidas</li>
+      <li><strong>Personalización</strong> — colores, logo, efectos a pedido</li>
+      <li><strong>Soporte directo</strong> por WhatsApp/email</li>
+    </ul>
+    <!-- Reemplazá este href con tu link de MercadoPago / Stripe -->
+    <a href="https://mpago.la/TU-LINK-AQUI" class="btn-buy" id="buy-btn">QUIERO DJ ROOTS →</a>
+  </div>
+
+  <div class="proof">
+    Hecho por <span>Sr. M</span> · Roots Studio<br>
+    ¿Tenés preguntas antes de comprar?
+  </div>
+
+  <div class="contact">
+    <a href="https://wa.me/5491164732719?text=Hola%20Sr.%20M%21%20Quiero%20comprar%20DJ%20Roots%20%F0%9F%8E%9A%20%E2%80%94%20%C2%BFc%C3%B3mo%20seguimos%3F">WhatsApp →</a> &nbsp;·&nbsp;
+    <a href="mailto:sr.eme.roots@gmail.com">Email →</a> &nbsp;·&nbsp;
+    <a href="dj-roots-prueba.html">Volver a la prueba</a>
+  </div>
+
+</div>
+
+<script>
+// Cuenta regresiva de renovación de prueba
+(function(){
+  const RENEW_MS = 24 * 60 * 60 * 1000;
+  function fp(){
+    return btoa(navigator.userAgent + navigator.language +
+      Intl.DateTimeFormat().resolvedOptions().timeZone).slice(0,24);
+  }
+  const K = k => k + '_' + fp();
+  const KEY_RENEW = 'djr_trial_renew';
+
+  function tick(){
+    const rn = parseInt(localStorage.getItem(K(KEY_RENEW)) || '0');
+    if(!rn){ document.getElementById('renew-countdown').textContent = '24:00:00'; return; }
+    const diff = RENEW_MS - (Date.now() - rn);
+    if(diff <= 0){
+      document.getElementById('renew-countdown').textContent = '¡ya podés probar de nuevo!';
+      return;
+    }
+    const h  = Math.floor(diff / 3600000);
+    const m  = Math.floor((diff % 3600000) / 60000);
+    const s  = Math.floor((diff % 60000) / 1000);
+    document.getElementById('renew-countdown').textContent =
+      h + 'h ' + (m<10?'0':'') + m + 'm ' + (s<10?'0':'') + s + 's';
+    setTimeout(tick, 1000);
+  }
+  tick();
+})();
+</script>
+
+</body>
+</html>

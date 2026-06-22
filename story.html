@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Story — Desde el bosque · Roots Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#3ecf3e; --amarillo:#f5c200; --rojo:#e03030;
+  --blanco:#f0f0e8; --fondo:#050805;
+  --superficie:rgba(9,14,9,0.82); --borde:rgba(245,194,0,0.22);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--fondo);color:var(--blanco);font-family:'EB Garamond',serif;min-height:100vh;padding-bottom:80px}
+header{position:sticky;top:0;z-index:50;background:rgba(5,8,5,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--borde);padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+header h1{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.15rem;letter-spacing:2px;text-transform:uppercase;color:var(--amarillo)}
+header h1 span{color:var(--verde)}
+.contador{font-family:'Oswald',sans-serif;font-size:.85rem;letter-spacing:1px;color:var(--blanco);opacity:.85;margin-left:auto}
+.acciones{display:flex;gap:8px;flex-wrap:wrap}
+button{font-family:'Oswald',sans-serif;letter-spacing:1px;text-transform:uppercase;font-size:.78rem;cursor:pointer;border:1px solid var(--borde);background:var(--superficie);color:var(--blanco);padding:8px 14px;border-radius:4px;transition:all .2s}
+button:hover{border-color:var(--verde);color:var(--verde)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.principal{border-color:var(--verde);color:var(--verde)}
+button.principal:hover{background:var(--verde);color:#050805}
+button.descarga{border-color:var(--amarillo);color:var(--amarillo)}
+button.descarga:hover{background:var(--amarillo);color:#050805}
+.progreso{width:100%;height:4px;background:rgba(255,255,255,.08);display:none}
+.progreso .barra{height:100%;width:0;background:linear-gradient(90deg,var(--verde),var(--amarillo));transition:width .3s}
+main{max-width:1280px;margin:0 auto;padding:24px 20px}
+.acto{margin-bottom:18px;border:1px solid var(--borde);border-radius:8px;background:var(--superficie);overflow:hidden}
+.acto-head{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:12px;user-select:none}
+.acto-head:hover{background:rgba(62,207,62,.05)}
+.acto-head h2{font-family:'Oswald',sans-serif;font-weight:500;font-size:1rem;letter-spacing:2px;text-transform:uppercase;color:var(--verde)}
+.acto-head .flecha{margin-left:auto;color:var(--amarillo);transition:transform .25s;font-family:'Oswald',sans-serif}
+.acto.abierto .flecha{transform:rotate(90deg)}
+.acto-body{display:none;padding:0 18px 18px}
+.acto.abierto .acto-body{display:block}
+.escena{margin-top:14px}
+.escena h3{font-family:'Oswald',sans-serif;font-weight:400;font-size:.85rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--amarillo);border-bottom:1px solid var(--borde);padding-bottom:6px;margin-bottom:12px}
+.grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tarjeta{border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column}
+.tarjeta .marco{aspect-ratio:16/9;background:#0a0d0a;display:flex;align-items:center;justify-content:center;position:relative}
+.tarjeta .marco img{width:100%;height:100%;object-fit:cover;display:block}
+.tarjeta .marco .vacio{font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:2px;color:rgba(240,240,232,.25);text-transform:uppercase}
+.tarjeta .marco .girando{width:26px;height:26px;border:3px solid rgba(62,207,62,.2);border-top-color:var(--verde);border-radius:50%;animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.tarjeta .info{padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:8px}
+.tarjeta .titulo{font-family:'Oswald',sans-serif;font-size:.8rem;letter-spacing:1px;color:var(--blanco)}
+.tarjeta .titulo b{color:var(--verde);font-weight:600}
+.tarjeta .desc{font-size:.92rem;font-style:italic;opacity:.8;line-height:1.35}
+.tarjeta textarea{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:4px;color:var(--blanco);font-family:'EB Garamond',serif;font-size:.85rem;padding:6px 8px;resize:vertical;min-height:54px;display:none}
+.tarjeta.editar textarea{display:block}
+.tarjeta .botones{display:flex;gap:6px;flex-wrap:wrap}
+.tarjeta .botones button{padding:6px 10px;font-size:.7rem}
+.tarjeta .estado-err{font-family:'Oswald',sans-serif;font-size:.68rem;letter-spacing:1px;color:var(--rojo)}
+.negro .marco{background:#000}
+.negro .marco .vacio{color:rgba(240,240,232,.5)}
+footer{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,5,.96);border-top:1px solid var(--borde);padding:10px 20px;display:flex;align-items:center;gap:14px;z-index:50}
+footer .msg{font-family:'Oswald',sans-serif;font-size:.78rem;letter-spacing:1px;opacity:.85}
+@media(max-width:640px){.grilla{grid-template-columns:1fr}header h1{font-size:.95rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Story<span> · Desde el bosque</span></h1>
+  <div class="acciones">
+    <button class="principal" id="btnTodo">Generar pendientes</button>
+    <button class="descarga" id="btnBajarTodo">Descargar todas</button>
+    <button id="btnDetener" style="display:none;border-color:var(--rojo);color:var(--rojo)">Detener</button>
+  </div>
+  <div class="contador" id="contador">0 / 74</div>
+</header>
+<div class="progreso" id="progreso"><div class="barra" id="barra"></div></div>
+
+<main id="main"></main>
+
+<footer>
+  <div class="msg" id="msg">Listo. Generá plano por plano o todo el lote.</div>
+</footer>
+
+<script>
+const WORKER = "https://shrill-cloud-bf39.rootsstudioar.workers.dev";
+const PAUSA = 800;
+
+// Estilo visual común a todos los planos (se agrega al final de cada prompt)
+const ESTILO = ", cinematic film still from a psychological horror short film, Argentine forest, overcast natural light, muted desaturated color grade, 35mm film grain, photorealistic";
+
+// Personajes (para consistencia)
+const CECI = "Cecilia, a young Argentine woman in her late 20s with very short dark hair, dark jacket";
+const SOL  = "Sol, a young Argentine woman in her late 20s with long brown hair tied back, olive green jacket";
+const HOMBRE = "a weathered middle-aged rural Argentine man with a worn dark coat and an intense fixed gaze";
+
+const DATA = [
+{acto:"Acto 1 — El viaje / La estación", escenas:[
+ {n:"01", titulo:"Cecilia y Sol parten en camioneta", planos:[
+  {n:1,t:"Plano general · Normal · Travelling lateral",d:"Camioneta entra desde ciudad hacia ruta",p:`wide shot, lateral tracking view of an old pickup truck driving from city outskirts onto an empty rural highway at dawn, two women inside`},
+  {n:2,t:"Plano medio · Normal · Estático",d:"Sol al volante, concentrada",p:`medium shot inside a pickup truck cabin, ${SOL} driving, focused on the road, morning light through the windshield`},
+  {n:3,t:"Primer plano · Normal · Estático",d:"Perfil de Cecilia en ventanilla",p:`close-up profile of ${CECI}, leaning against the passenger window of a moving truck, pensive, landscape reflections on the glass`},
+  {n:4,t:"Plano detalle · Picado · Estático",d:"El baúl cerrado. El vestido adentro (implícito)",p:`high angle insert shot of a closed pickup truck bed with a white garment bag partially visible under a tarp, hinting at a wedding dress`},
+  {n:5,t:"Plano medio dos · Normal · Estático",d:"Las dos. Silencio. Clima tenso",p:`medium two shot inside a truck cabin, ${CECI} and ${SOL}, sitting in tense silence, not looking at each other`},
+ ]},
+ {n:"02", titulo:"Parada en la estación de ruta", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"La estación. La camioneta estaciona",p:`wide shot of a lonely rural roadside gas station and store in the Argentine countryside, an old pickup truck pulling in, gray sky`},
+  {n:2,t:"Plano americano · Normal · Estático",d:"Cecilia y Sol entran al local",p:`american shot of ${CECI} and ${SOL} walking through the door of a dusty rural roadside store`},
+  {n:3,t:"Primer plano · Normal · Estático",d:"El Hombre apoyado en la pared. Mirada fija",p:`close-up of ${HOMBRE}, leaning against the outside wall of a rural store, staring fixedly at something off camera`},
+  {n:4,t:"Plano subjetivo · Normal · Estático",d:"Lo que él ve: las dos chicas",p:`POV shot from across a rural gas station: two young women, ${CECI} and ${SOL}, seen from a distance near their pickup truck, slightly voyeuristic framing`},
+  {n:5,t:"Primer plano · Normal · Estático",d:"Cecilia nota que la mira",p:`close-up of ${CECI}, noticing she is being watched, uneasy expression, glancing sideways`},
+  {n:6,t:"Plano medio · Normal · Estático",d:"Cecilia explota. La escena frente a todos",p:`medium shot of ${CECI} angrily confronting and shouting at ${HOMBRE} inside a rural roadside store, bystanders in the background`},
+  {n:7,t:"Plano general · Normal · Estático",d:"Los lugareños observan. Nadie interviene",p:`wide shot inside a dim rural store, local countryside people standing still and watching a confrontation impassively, nobody intervening`},
+  {n:8,t:"Primer plano · Normal · Estático",d:"Él. No responde. Solo mira",p:`close-up of ${HOMBRE}, completely silent and expressionless, only staring, unsettling stillness`},
+ ]},
+ {n:"03", titulo:"Las chicas se van / él las sigue con la vista", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"La camioneta se aleja por la ruta",p:`wide shot of an old pickup truck driving away down a straight empty rural highway, dust trail, vast flat horizon`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"El Hombre mira hacia el camino",p:`close-up of ${HOMBRE}, standing at a roadside station, gazing down the highway where a truck disappears`},
+  {n:3,t:"Plano detalle · Normal · Estático",d:"Sus pies. Da un paso en la misma dirección",p:`insert detail shot of worn leather work boots on cracked asphalt taking one slow step forward toward the road`},
+ ]},
+]},
+{acto:"Acto 2 — El bosque / La primera noche", escenas:[
+ {n:"04", titulo:"Llegan al bosque. Arman campamento", planos:[
+  {n:1,t:"Plano general · Contrapicado leve · Travelling de avance",d:"Entran al bosque por el sendero",p:`wide shot, slight low angle, forward tracking into a dense dark forest trail, two women with backpacks entering, tall trees closing overhead`},
+  {n:2,t:"Plano general · Normal · Estático",d:"El campamento armado. Fuego encendido",p:`wide shot of a small campsite in a forest clearing at dusk, a tent set up and a campfire burning, warm firelight against dark trees`},
+  {n:3,t:"Plano medio dos · Normal · Estático",d:"Las dos con botellas, música. Alivio",p:`medium two shot of ${CECI} and ${SOL} sitting by a campfire at night, holding beer bottles, laughing, relaxed atmosphere`},
+  {n:4,t:"Plano detalle · Normal · Estático",d:"El fuego. Las llamas sin viento",p:`insert detail shot of campfire flames burning perfectly straight up in complete stillness, no wind, hypnotic, black forest behind`},
+  {n:5,t:"Plano general · Picado · Estático",d:"Las dos dormidas. Todo encendido todavía",p:`high angle wide shot of a forest campsite at night, two women asleep near a still-burning campfire and lit lantern, surrounded by darkness`},
+ ]},
+ {n:"05", titulo:"Amanecer. Todo revuelto", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"El campamento. Luz dura de mañana. Todo revuelto",p:`wide shot of a forest campsite in harsh morning light, belongings scattered and overturned, backpacks open, eerie quiet`},
+  {n:2,t:"Plano medio · Normal · Estático",d:"Cecilia mira las mochilas abiertas",p:`medium shot of ${CECI} standing over opened ransacked backpacks at a campsite, confused, morning light`},
+  {n:3,t:"Primer plano · Normal · Estático",d:"Sol mira los árboles. Algo en su expresión",p:`close-up of ${SOL}, staring at the tree line with a disturbed unreadable expression, morning forest light`},
+  {n:4,t:"Plano subjetivo · Normal · Lento zoom in",d:"La línea de árboles. Quieta. Demasiado quieta",p:`POV shot of a dense forest tree line in daylight, unnaturally still, no movement, oppressive silence, subtle dread`},
+ ]},
+ {n:"06", titulo:"Retoman la caminata", planos:[
+  {n:1,t:"Plano general · Normal · Travelling seguimiento",d:"Las dos caminan por el sendero",p:`wide tracking shot following ${CECI} and ${SOL} hiking with backpacks along a narrow forest trail, tall trees, dim light`},
+  {n:2,t:"Plano detalle · Normal · Estático",d:"Ramas. Sin viento. Sin pájaros",p:`insert detail of bare tree branches against gray sky, completely motionless, no birds, dead silence implied`},
+  {n:3,t:"Plano medio · Normal · Estático",d:"Cecilia. Escucha. Frena",p:`medium shot of ${CECI} stopped on a forest trail, head tilted, listening intently, alert`},
+  {n:4,t:"Plano general · Normal · Estático",d:"El bosque detrás. Movimiento entre troncos",p:`wide shot of dense forest behind a trail, a vague dark shape barely visible moving between distant tree trunks, ambiguous`},
+  {n:5,t:"Primer plano · Normal · Estático",d:"Sol. Siente antes de ver",p:`close-up of ${SOL}, eyes wide, sensing a presence before seeing it, dread on her face, forest bokeh background`},
+ ]},
+]},
+{acto:"Acto 3 — El Hombre / El giro", escenas:[
+ {n:"07", titulo:"El Hombre reaparece", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"El recodo del camino. El Hombre parado, quieto",p:`wide shot of a bend in a forest trail, ${HOMBRE} standing perfectly still in the middle of the path, distant, ominous`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"Cecilia. Reconocimiento. Miedo",p:`close-up of ${CECI}, recognition turning to fear on her face, frozen`},
+  {n:3,t:"Plano americano · Normal · Estático",d:"Sol deja la mochila en el suelo. Enfrenta",p:`american shot of ${SOL} dropping her backpack to the ground on a forest trail, squaring up defiantly toward someone off camera`},
+  {n:4,t:"Plano medio dos · Normal · Estático",d:"Confrontación. Él no avanza",p:`medium shot of a tense standoff on a forest trail: ${CECI} and ${SOL} facing ${HOMBRE}, who stands motionless, not advancing`},
+  {n:5,t:"Plano detalle · Normal · Estático",d:"El teléfono de Cecilia. Sin señal",p:`insert detail shot of a smartphone screen held in a woman's hand showing no signal bars, forest blurred in background`},
+ ]},
+ {n:"08", titulo:"La mochila desaparece", planos:[
+  {n:1,t:"Plano detalle · Picado · Estático",d:"La mochila en el suelo",p:`high angle insert shot of an olive green backpack lying on the dirt of a forest trail, leaves around it`},
+  {n:2,t:"Plano medio · Normal · Estático",d:"Cecilia y Sol discuten con el Hombre",p:`medium shot of ${CECI} and ${SOL} arguing heatedly with ${HOMBRE} on a forest trail, gesturing, tension`},
+  {n:3,t:"Plano detalle · Picado · Estático",d:"El suelo. La mochila no está",p:`high angle insert shot of bare forest trail dirt where a backpack used to be, only a faint imprint in the leaves, unsettling absence`},
+  {n:4,t:"Primer plano · Normal · Estático",d:"Sol. Duda. Después acusación",p:`close-up of ${SOL}, expression shifting from doubt to hard accusation, jaw set`},
+ ]},
+ {n:"09", titulo:"La colita celeste", planos:[
+  {n:1,t:"Plano medio · Normal · Estático",d:"El Hombre abre la mano lentamente",p:`medium shot of ${HOMBRE} slowly opening his closed fist, extending his hand forward, solemn`},
+  {n:2,t:"Plano detalle · Picado · Lento zoom in",d:"La colita celeste con moñito cosido",p:`extreme close-up high angle of a weathered male palm holding a tiny light blue child's hair tie with a small sewn bow, emotionally charged detail`},
+  {n:3,t:"Primer plano · Normal · Estático",d:"Sol. La mira. Algo en ella se rompe",p:`close-up of ${SOL}, staring down at something in front of her, devastation breaking through her face, eyes glistening`},
+  {n:4,t:"Primer plano · Normal · Estático",d:"El Hombre. El dolor en su cara",p:`close-up of ${HOMBRE}, raw grief on his weathered face, eyes full of old pain, vulnerable`},
+  {n:5,t:"Plano general · Normal · Estático",d:"Los tres. Silencio. El bosque alrededor",p:`wide shot of three figures standing apart in silence on a forest trail, ${CECI}, ${SOL} and ${HOMBRE}, surrounded by immense dark forest`},
+ ]},
+ {n:"10", titulo:"El Hombre habla", planos:[
+  {n:1,t:"Plano medio · Normal · Estático",d:"Él habla. Primera vez que usa la voz",p:`medium shot of ${HOMBRE} speaking quietly for the first time, mid-sentence, weight in his expression, forest background`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"Cecilia escucha. El enojo se transforma",p:`close-up of ${CECI} listening, anger softening into something like compassion, subtle emotional shift`},
+  {n:3,t:"Plano detalle · Normal · Estático",d:"Sus manos. La colita todavía ahí",p:`insert detail of weathered male hands gently cradling a tiny light blue hair tie, protective`},
+  {n:4,t:"Plano medio · Normal · Estático",d:"Sol mira los árboles mientras él habla",p:`medium shot of ${SOL} not listening, her gaze fixed on the dark trees beyond, growing unease, two blurred figures talking in foreground`},
+ ]},
+]},
+{acto:"Acto 4 — La trampa / La persecución", escenas:[
+ {n:"11", titulo:"Algo se mueve entre los árboles", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"El bosque. Movimiento con peso, con volumen",p:`wide shot of dense dark forest, branches and undergrowth disturbed by something heavy moving unseen between the trees, menacing`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"Los tres. Inmóviles",p:`tight shot of three terrified faces close together, ${CECI}, ${SOL} and ${HOMBRE}, frozen, all staring in the same direction`},
+  {n:3,t:"Plano general · Normal · Estático",d:"La mochila cae a los pies de Sol. Abierta",p:`wide shot of an open backpack landing in the dirt at a young woman's feet on a forest trail, contents half spilled, thrown from the darkness`},
+ ]},
+ {n:"12", titulo:"El Hombre advierte", planos:[
+  {n:1,t:"Plano medio · Normal · Estático",d:"El Hombre. Urgente. 'Es una trampa'",p:`medium shot of ${HOMBRE}, urgent warning expression, leaning forward, speaking intensely`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"Cecilia. No lo cree del todo",p:`close-up of ${CECI}, skeptical and conflicted, distrust battling fear in her eyes`},
+  {n:3,t:"Primer plano · Normal · Estático",d:"Sol. Mira la mochila. Falta algo adentro",p:`close-up of ${SOL} looking down into an open backpack, realizing something is missing, dawning dread`},
+ ]},
+ {n:"13", titulo:"Entran al bosque igual", planos:[
+  {n:1,t:"Plano general · Contrapicado · Travelling de avance",d:"Las dos se internan. Los árboles las envuelven",p:`wide low angle forward tracking shot of ${CECI} and ${SOL} walking off-trail into deep dark forest, towering trees engulfing them`},
+  {n:2,t:"Plano general · Normal · Estático",d:"El Hombre duda un segundo. Las sigue",p:`wide shot of ${HOMBRE} hesitating at the edge of dense forest, then stepping in to follow, swallowed by shadow`},
+  {n:3,t:"Plano general · Picado · Travelling aéreo lento",d:"Los tres avanzan. La figura los precede sin apuro",p:`slow aerial high angle tracking shot over dark forest canopy, three small figures advancing below, a fourth dark figure moving unhurried ahead of them`},
+ ]},
+ {n:"14", titulo:"El Hombre cae", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"Un grito. Fuera de cuadro",p:`wide shot of empty dense dark forest, no people visible, oppressive stillness, the moment after a scream`},
+  {n:2,t:"Primer plano · Normal · Estático",d:"Cecilia. Para en seco",p:`close-up of ${CECI} stopping dead mid-stride, breath caught, terror, dark forest around her`},
+  {n:3,t:"Plano general · Normal · Estático",d:"Vuelven. El Hombre en el suelo",p:`wide shot of ${HOMBRE} lying on the forest floor among roots and leaves, two women rushing back toward him, dim light`},
+  {n:4,t:"Plano detalle · Picado · Estático",d:"Algo arrastra sus pies hacia la oscuridad",p:`high angle insert of a man's boots and legs being dragged across the forest floor toward deep darkness between trees, leaves displaced, unseen force`},
+  {n:5,t:"Plano general · Normal · Estático",d:"Desaparece entre los árboles. Silencio",p:`wide shot of dark forest, the last trace of a man vanishing into blackness between distant trees, two women standing helpless in foreground`},
+ ]},
+]},
+{acto:"Acto 5 — La huida / El final", escenas:[
+ {n:"15", titulo:"Ellas corren", planos:[
+  {n:1,t:"Plano medio · Normal · Cámara en mano",d:"Corren. Inestable. Puro instinto",p:`handheld unstable medium shot of ${CECI} and ${SOL} running desperately through forest, motion blur, branches whipping past, panic`},
+  {n:2,t:"Plano general · Normal · Estático",d:"El camino de tierra. La camioneta al fondo",p:`wide shot of a dirt road at the forest edge, an old pickup truck parked in the distance, two small figures running toward it`},
+  {n:3,t:"Plano subjetivo · Normal · Cámara en mano corriendo",d:"La camioneta se acerca",p:`handheld running POV shot toward an old pickup truck on a dirt road, frame shaking violently, desperate approach`},
+ ]},
+ {n:"16-17", titulo:"La camioneta. Algo entra", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"Suben. Intentan arrancar",p:`wide shot of two women scrambling into an old pickup truck on a dirt road at the forest edge, doors slamming, urgency`},
+  {n:2,t:"Plano general · Normal · Estático",d:"La cámara queda afuera. Distancia",p:`static wide shot of an old pickup truck seen from a cold distance on a dirt road, forest looming behind it, detached observational framing, dread`},
+  {n:3,t:"Plano general · Normal · Estático",d:"Sacudones. Movimiento interno. Gritos",p:`static wide shot of an old pickup truck violently shaking and rocking on its suspension, chaotic movement inside the cabin, seen from a distance, horror`},
+  {n:4,t:"Plano general · Normal · Estático",d:"Silencio. La camioneta quieta",p:`static wide shot of an old pickup truck completely still on a dirt road, absolute silence, forest behind, aftermath`},
+ ]},
+ {n:"18-19", titulo:"El final", planos:[
+  {n:1,t:"Plano general · Normal · Estático",d:"Las puertas se abren. Salen despacio",p:`wide shot of both doors of an old pickup truck opening slowly, ${CECI} and ${SOL} stepping out unnaturally calm, blank expressions`},
+  {n:2,t:"Plano americano · Normal · Travelling lateral lento",d:"Caminan. Sin hablar. Sin mirar atrás",p:`slow lateral tracking american shot of ${CECI} and ${SOL} walking side by side toward the forest, expressionless, not speaking, not looking back`},
+  {n:3,t:"Plano detalle · Picado · Estático",d:"La bolsa con el vestido de novia. En el suelo",p:`high angle insert shot of a white garment bag with a wedding dress half visible, abandoned on the dirt ground, poignant`},
+  {n:4,t:"Plano general · Contrapicado · Estático",d:"El bosque las recibe. La oscuridad las absorbe",p:`wide low angle shot of two women walking into a wall of dark forest, the blackness between the trees absorbing their silhouettes, final image of surrender`},
+  {n:5,t:"Plano general · Normal · Estático",d:"La camioneta sola. Puertas abiertas. Motor encendido",p:`static wide shot of an abandoned old pickup truck on a dirt road, both doors open, headlights on, engine running, nobody around, dusk`},
+  {n:6,t:"Fundido a negro",d:"FUNDIDO A NEGRO",p:null},
+ ]},
+]},
+];
+
+// ---------- estado ----------
+const KEY = "story_deb_imagenes";
+let guardado = {};
+try{ guardado = JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ guardado={}; }
+let detener = false;
+
+function idDe(a,e,p){ return `a${a}_e${String(e).replace("-","")}_p${String(p).padStart(2,"0")}`; }
+function nombreArchivo(id){ return id + ".jpg"; }
+
+// ---------- render ----------
+const main = document.getElementById("main");
+let totalGenerables = 0;
+
+DATA.forEach((acto, ai)=>{
+  const actoNum = ai+1;
+  const divA = document.createElement("div");
+  divA.className = "acto" + (ai===0 ? " abierto" : "");
+  const head = document.createElement("div");
+  head.className = "acto-head";
+  head.innerHTML = `<h2>${acto.acto}</h2><span class="flecha">▶</span>`;
+  head.onclick = ()=> divA.classList.toggle("abierto");
+  divA.appendChild(head);
+  const body = document.createElement("div");
+  body.className = "acto-body";
+
+  acto.escenas.forEach(esc=>{
+    const divE = document.createElement("div");
+    divE.className = "escena";
+    divE.innerHTML = `<h3>Escena ${esc.n} — ${esc.titulo}</h3>`;
+    const grilla = document.createElement("div");
+    grilla.className = "grilla";
+
+    esc.planos.forEach(pl=>{
+      const id = idDe(actoNum, esc.n, pl.n);
+      const card = document.createElement("div");
+      card.className = "tarjeta" + (pl.p===null ? " negro" : "");
+      card.id = "card_" + id;
+
+      if(pl.p === null){
+        card.innerHTML = `
+          <div class="marco"><span class="vacio">Fundido a negro</span></div>
+          <div class="info"><div class="titulo"><b>Plano ${pl.n}</b> · ${pl.t}</div></div>`;
+        grilla.appendChild(card);
+        return;
+      }
+      totalGenerables++;
+
+      card.innerHTML = `
+        <div class="marco" id="marco_${id}"><span class="vacio">Sin generar</span></div>
+        <div class="info">
+          <div class="titulo"><b>Plano ${pl.n}</b> · ${pl.t}</div>
+          <div class="desc">${pl.d}</div>
+          <textarea id="prompt_${id}">${pl.p + ESTILO}</textarea>
+          <div class="botones">
+            <button onclick="generar('${id}')" id="btn_${id}">Generar</button>
+            <button onclick="toggleEditar('${id}')">Prompt</button>
+            <button class="descarga" onclick="descargar('${id}')" id="dl_${id}" disabled>↓ ${nombreArchivo(id)}</button>
+          </div>
+          <div class="estado-err" id="err_${id}"></div>
+        </div>`;
+      grilla.appendChild(card);
+    });
+
+    divE.appendChild(grilla);
+    body.appendChild(divE);
+  });
+
+  divA.appendChild(body);
+  main.appendChild(divA);
+});
+
+// restaurar imágenes guardadas
+Object.keys(guardado).forEach(id=>{
+  if(document.getElementById("marco_"+id)) pintarImagen(id, guardado[id]);
+});
+actualizarContador();
+
+// ---------- funciones ----------
+function pintarImagen(id, url){
+  const marco = document.getElementById("marco_"+id);
+  marco.innerHTML = `<img src="${url}" alt="${id}">`;
+  const dl = document.getElementById("dl_"+id);
+  if(dl) dl.disabled = false;
+}
+
+function toggleEditar(id){
+  document.getElementById("card_"+id).classList.toggle("editar");
+}
+
+function actualizarContador(){
+  const n = Object.keys(guardado).length;
+  document.getElementById("contador").textContent = `${n} / ${totalGenerables}`;
+}
+
+function msg(t){ document.getElementById("msg").textContent = t; }
+
+async function generar(id){
+  const btn = document.getElementById("btn_"+id);
+  const marco = document.getElementById("marco_"+id);
+  const err = document.getElementById("err_"+id);
+  const prompt = document.getElementById("prompt_"+id).value.trim();
+  btn.disabled = true;
+  err.textContent = "";
+  marco.innerHTML = `<div class="girando"></div>`;
+  try{
+    const r = await fetch(WORKER, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt })
+    });
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const url = data.images && data.images[0] && data.images[0].url;
+    if(!url) throw new Error("Sin imagen en la respuesta");
+    guardado[id] = url;
+    localStorage.setItem(KEY, JSON.stringify(guardado));
+    pintarImagen(id, url);
+    actualizarContador();
+  }catch(e){
+    marco.innerHTML = `<span class="vacio">Error</span>`;
+    err.textContent = e.message;
+  }
+  btn.disabled = false;
+}
+
+const pausa = ms => new Promise(r=>setTimeout(r,ms));
+
+async function generarTodo(){
+  detener = false;
+  const ids = [];
+  document.querySelectorAll("[id^='btn_']").forEach(b=>{
+    const id = b.id.slice(4);
+    if(!guardado[id]) ids.push(id);
+  });
+  if(!ids.length){ msg("No hay pendientes — todo generado."); return; }
+
+  const prog = document.getElementById("progreso");
+  const barra = document.getElementById("barra");
+  const btnT = document.getElementById("btnTodo");
+  const btnD = document.getElementById("btnDetener");
+  prog.style.display = "block"; btnT.disabled = true; btnD.style.display = "inline-block";
+
+  for(let i=0;i<ids.length;i++){
+    if(detener){ msg("Detenido. Podés retomar cuando quieras."); break; }
+    const id = ids[i];
+    msg(`Generando ${i+1} de ${ids.length} — ${id}`);
+    document.getElementById("card_"+id).scrollIntoView({behavior:"smooth", block:"center"});
+    await generar(id);
+    barra.style.width = Math.round(((i+1)/ids.length)*100) + "%";
+    await pausa(PAUSA);
+  }
+  if(!detener) msg("Lote terminado ✔ Ahora podés descargar todas.");
+  btnT.disabled = false; btnD.style.display = "none";
+  setTimeout(()=>{ prog.style.display="none"; barra.style.width="0"; }, 1500);
+}
+
+async function descargar(id){
+  const url = guardado[id];
+  if(!url) return;
+  try{
+    const r = await fetch(url);
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombreArchivo(id);
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  }catch(e){
+    window.open(url, "_blank"); // fallback: guardar manualmente
+  }
+}
+
+async function descargarTodo(){
+  const ids = Object.keys(guardado);
+  if(!ids.length){ msg("Todavía no hay imágenes generadas."); return; }
+  msg(`Descargando ${ids.length} imágenes...`);
+  for(let i=0;i<ids.length;i++){
+    await descargar(ids[i]);
+    msg(`Descargando ${i+1} de ${ids.length}`);
+    await pausa(600);
+  }
+  msg("Descarga completa ✔ Buscalas en tu carpeta Descargas.");
+}
+
+document.getElementById("btnTodo").onclick = generarTodo;
+document.getElementById("btnBajarTodo").onclick = descargarTodo;
+document.getElementById("btnDetener").onclick = ()=>{ detener = true; };
+</script>
+</body>
+</html>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ ROOTS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap');
+
+  :root {
+    --bg: #111010;
+    --surface: #1a1917;
+    --surface2: #222120;
+    --surface3: #2a2826;
+    --border: #2e2c2a;
+    --border2: #3a3835;
+    --brown: #2d6a2d;
+    --brown2: #4a9a4a;
+    --brown-dim: #1a3d1a;
+    --text: #c8bfb0;
+    --text-dim: #6b6560;
+    --text-muted: #3a3835;
+    --accent: #4a9a4a;
+    --red: #c0392b;
+    --green: #27ae60;
+    --yellow: #c8a020;
+    --yellow-dim: #3d3010;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #0d0c0b;
+  }
+  .logo {
+    font-family: var(--display);
+    font-size: 28px;
+    letter-spacing: 0.15em;
+    color: #c8a020;
+  }
+  .logo span { color: var(--text-dim); font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; margin-left: 12px; vertical-align: middle; }
+  .status-bar { display: flex; gap: 16px; align-items: center; font-size: 11px; color: var(--text-dim); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); display: inline-block; margin-right: 4px; }
+  .status-dot.on { background: #27ae60; box-shadow: 0 0 6px #27ae60; }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 200px 1fr;
+    grid-template-rows: auto auto;
+    gap: 0;
+    height: calc(100vh - 53px);
+  }
+
+  /* DECK */
+  .deck {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+  .deck:last-child { border-right: none; border-left: 1px solid var(--border); }
+
+  .deck-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #161514;
+  }
+  .deck-id {
+    font-family: var(--display);
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    color: #c8a020;
+  }
+  .deck-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; }
+
+  /* SEARCH */
+  .search-zone {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 6px;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    border-radius: 0;
+  }
+  .search-input:focus { border-color: var(--brown); }
+  .search-input::placeholder { color: var(--text-muted); }
+  .btn {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    padding: 7px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 0;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+  .btn.active { background: var(--brown-dim); border-color: var(--brown); color: var(--brown2); }
+  .btn.play-btn { background: var(--brown-dim); border-color: var(--brown); color: var(--brown2); font-size: 16px; padding: 7px 16px; }
+  .btn.play-btn:hover { background: var(--brown); color: #fff; }
+  .btn.play-btn.playing { background: var(--brown); color: #fff; }
+  .btn.stop-btn { background: #2a1010; border-color: #5a1010; color: #c0392b; }
+  .btn.stop-btn:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+
+  /* RESULTS */
+  .results {
+    flex: 0 0 auto;
+    max-height: 120px;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+  .result-item {
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: background 0.1s;
+  }
+  .result-item:hover { background: var(--surface2); color: var(--text); }
+  .result-item .ri-thumb {
+    width: 40px; height: 28px;
+    object-fit: cover;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  .result-item .ri-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .result-item .ri-dur { color: var(--text-muted); font-size: 10px; flex-shrink: 0; }
+
+  /* NOW PLAYING */
+  .now-playing {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #161514;
+    min-height: 50px;
+  }
+  .np-title { font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .np-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  /* PLAYER HIDDEN */
+  .yt-player { display: none; }
+  .yt-preview {
+    width: 100%;
+    height: 80px;
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+  .yt-preview iframe {
+    width: 100%;
+    height: 160px;
+    margin-top: -40px;
+    pointer-events: none;
+    opacity: 0.85;
+    border: none;
+  }
+  .yt-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #0a0a0a 0%, transparent 20%, transparent 80%, #0a0a0a 100%);
+    pointer-events: none;
+  }
+
+  /* WAVEFORM / PROGRESS */
+  .progress-zone {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-bar-wrap {
+    width: 100%;
+    height: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1a3d1a, #4a9a4a);
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+  .progress-bars {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    padding: 2px;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  .progress-bar-item {
+    flex: 1;
+    background: var(--brown2);
+    border-radius: 0;
+  }
+  .time-row { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--text-dim); }
+
+  /* CONTROLS */
+  .controls {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* VOLUME */
+  .vol-zone {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vol-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; width: 28px; }
+  .slider-wrap { flex: 1; position: relative; height: 20px; display: flex; align-items: center; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border2);
+    outline: none;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px; height: 20px;
+    background: var(--brown2);
+    border-radius: 0;
+    cursor: pointer;
+    border: none;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { background: var(--text); }
+  .vol-val { font-size: 10px; color: var(--text-dim); width: 28px; text-align: right; }
+
+  /* EQ */
+  .eq-zone {
+    padding: 8px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .eq-label-row { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 2px; letter-spacing: 0.05em; }
+  .eq-sliders { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
+  .eq-band {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+  }
+  .eq-band input[type=range] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 3px;
+    height: 60px;
+    flex: 1;
+  }
+  .eq-band input[type=range]::-webkit-slider-thumb { width: 18px; height: 8px; }
+  .eq-band-label { font-size: 9px; color: var(--text-muted); }
+  .eq-val { font-size: 9px; color: var(--text-dim); }
+
+  /* CROSSFADER CENTER */
+  .center-panel {
+    background: #0f0e0d;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .center-section {
+    width: 100%;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .center-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-align: center; }
+  .crossfader-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .xfade-indicators { display: flex; justify-content: space-between; width: 100%; font-size: 9px; }
+  .xfade-a { color: var(--brown); }
+  .xfade-b { color: var(--brown); }
+
+  .tempo-display {
+    font-family: var(--display);
+    font-size: 32px;
+    color: #c8a020;
+    letter-spacing: 0.05em;
+    text-align: center;
+    line-height: 1;
+  }
+  .tempo-unit { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+
+  .xfade-speed-btns { display: flex; gap: 4px; width: 100%; }
+  .xfade-speed-btns .btn { flex: 1; font-size: 10px; padding: 5px 4px; text-align: center; }
+
+  /* CORTINA */
+  .cortina-panel {
+    grid-column: 1 / -1;
+    background: #0d0c0b;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+  }
+  .cortina-label {
+    font-family: var(--display);
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .cortina-search { display: flex; gap: 6px; flex: 1; }
+  .cortina-controls { display: flex; gap: 6px; align-items: center; }
+  .cortina-vol { display: flex; align-items: center; gap: 6px; }
+  .cortina-vol .vol-label { width: 20px; }
+  .cortina-vol input[type=range] { width: 80px; }
+  .cortina-np { font-size: 10px; color: var(--text-dim); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* API KEY MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+  }
+  .modal h2 { font-family: var(--display); font-size: 24px; color: var(--brown2); letter-spacing: 0.1em; margin-bottom: 16px; }
+  .modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.6; }
+  .modal input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .modal input:focus { border-color: var(--brown); }
+
+  .loading { font-size: 10px; color: var(--text-muted); padding: 8px 14px; }
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="apiModal" style="display:none;">
+  <div class="modal">
+    <h2>DJ ROOTS</h2>
+    <p>Ingresá tu YouTube Data API v3 Key para habilitar la búsqueda de tracks.</p>
+    <input type="text" id="apiKeyInput" placeholder="AIza..." />
+    <button class="btn" style="width:100%;padding:10px;" onclick="saveApiKey()">INICIAR SESIÓN</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="logo">DJ ROOTS <span>v1.0</span></div>
+  <div class="status-bar">
+    <div><span class="status-dot" id="dot-a"></span>DECK A</div>
+    <div><span class="status-dot" id="dot-b"></span>DECK B</div>
+    <div><span class="status-dot on"></span>ONLINE</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- DECK A -->
+  <div class="deck" id="deckA">
+    <div class="deck-header">
+      <div class="deck-id">DECK A</div>
+      <div class="deck-label">CHANNEL 1</div>
+    </div>
+    <div class="search-zone">
+      <input class="search-input" id="searchA" placeholder="buscar track..." onkeypress="if(event.key==='Enter') search('A')">
+      <button class="btn" onclick="search('A')">BUSCAR</button>
+    </div>
+    <div class="results" id="resultsA"></div>
+    <div class="now-playing" id="npA">
+      <div class="np-title" id="npTitleA">— sin track —</div>
+      <div class="np-sub" id="npSubA">cargar track para comenzar</div>
+    </div>
+    <div id="playerA" class="yt-player"></div>
+    <div class="yt-preview" id="previewA"><div class="yt-preview-overlay"></div></div>
+    <div class="progress-zone">
+      <div class="progress-bar-wrap" onclick="seekDeck('A', event)">
+        <div class="progress-bar-fill" id="progressA"></div>
+        <div class="progress-bars" id="waveA"></div>
+      </div>
+      <div class="time-row">
+        <span id="timeA">0:00</span>
+        <span id="durA">0:00</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn play-btn" id="playBtnA" onclick="togglePlay('A')">▶</button>
+      <button class="btn stop-btn" onclick="stopDeck('A')">■</button>
+      <button class="btn" onclick="cue('A')">CUE</button>
+      <button class="btn" id="syncBtnA" onclick="syncDeck('A')">SYNC</button>
+      <button class="btn" id="loopBtnA" onclick="toggleLoop('A')">LOOP</button>
+    </div>
+    <div class="vol-zone">
+      <span class="vol-label">VOL</span>
+      <div class="slider-wrap"><input type="range" min="0" max="100" value="80" oninput="setVol('A', this.value)" id="volA"></div>
+      <span class="vol-val" id="volValA">80</span>
+    </div>
+    <div class="eq-zone">
+      <div class="eq-label-row">
+        <span>EQ</span>
+        <span style="cursor:pointer;color:var(--text-muted)" onclick="resetEq('A')">RESET</span>
+      </div>
+      <div class="eq-sliders">
+        <div class="eq-band">
+          <span class="eq-val" id="eqValA0">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',0,this.value)">
+          <span class="eq-band-label">32</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValA1">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',1,this.value)">
+          <span class="eq-band-label">250</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValA2">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',2,this.value)">
+          <span class="eq-band-label">1K</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValA3">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',3,this.value)">
+          <span class="eq-band-label">4K</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValA4">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',4,this.value)">
+          <span class="eq-band-label">16K</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center-panel">
+    <div class="center-section">
+      <div class="center-label">CROSSFADER</div>
+      <div class="crossfader-wrap">
+        <div class="xfade-indicators"><span class="xfade-a">A</span><span class="xfade-b">B</span></div>
+        <input type="range" min="0" max="100" value="50" oninput="setCrossfader(this.value)" id="crossfader" style="width:100%">
+      </div>
+    </div>
+    <div class="center-section">
+      <div class="center-label">MASTER VOL</div>
+      <input type="range" min="0" max="100" value="80" oninput="setMasterVol(this.value)" style="width:100%">
+    </div>
+    <div class="center-section">
+      <div class="center-label">TEMPO A</div>
+      <div class="tempo-display" id="tempoA">128</div>
+      <div class="tempo-unit">BPM</div>
+      <input type="range" min="60" max="200" value="128" oninput="setTempo('A',this.value)" style="width:100%">
+    </div>
+    <div class="center-section">
+      <div class="center-label">TEMPO B</div>
+      <div class="tempo-display" id="tempoB">128</div>
+      <div class="tempo-unit">BPM</div>
+      <input type="range" min="60" max="200" value="128" oninput="setTempo('B',this.value)" style="width:100%">
+    </div>
+    <div class="center-section">
+      <div class="center-label">FUSIÓN</div>
+      <div class="xfade-speed-btns" style="margin-bottom:6px">
+        <button class="btn" onclick="autoFadeDir('A')" style="background:#1a3d1a;border-color:#2d6a2d;color:#4a9a4a;flex:1;font-size:11px">◀ A</button>
+        <button class="btn" onclick="autoFadeDir('B')" style="background:#1a3d1a;border-color:#2d6a2d;color:#4a9a4a;flex:1;font-size:11px">B ▶</button>
+      </div>
+      <div style="font-size:9px;color:var(--text-muted);margin-bottom:4px;letter-spacing:0.08em">VELOCIDAD</div>
+      <div class="xfade-speed-btns" style="margin-bottom:4px">
+        <button class="btn" id="fadeSlowBtn" onclick="setFadeSpeed('slow')" style="flex:1;font-size:10px;background:#1a3010;border-color:#3a5010;color:#8a9a30">SUAVE</button>
+        <button class="btn" id="fadeFastBtn" onclick="setFadeSpeed('fast')" style="flex:1;font-size:10px">RÁPIDO</button>
+      </div>
+      <div class="xfade-speed-btns">
+        <button class="btn" onclick="autoFade(fadeSpeed === 'slow' ? 15 : 2)">◀▶</button>
+        <button class="btn" onclick="autoFade(fadeSpeed === 'slow' ? 8 : 1)">▶▶</button>
+      </div>
+    </div>
+    <div class="center-section" style="flex:1;justify-content:flex-end">
+      <div class="center-label">PITCH A</div>
+      <input type="range" min="-10" max="10" value="0" oninput="setPitch('A',this.value)" style="width:100%">
+      <div class="center-label" style="margin-top:8px">PITCH B</div>
+      <input type="range" min="-10" max="10" value="0" oninput="setPitch('B',this.value)" style="width:100%">
+    </div>
+  </div>
+
+  <!-- DECK B -->
+  <div class="deck" id="deckB">
+    <div class="deck-header">
+      <div class="deck-id">DECK B</div>
+      <div class="deck-label">CHANNEL 2</div>
+    </div>
+    <div class="search-zone">
+      <input class="search-input" id="searchB" placeholder="buscar track..." onkeypress="if(event.key==='Enter') search('B')">
+      <button class="btn" onclick="search('B')">BUSCAR</button>
+    </div>
+    <div class="results" id="resultsB"></div>
+    <div class="now-playing" id="npB">
+      <div class="np-title" id="npTitleB">— sin track —</div>
+      <div class="np-sub" id="npSubB">cargar track para comenzar</div>
+    </div>
+    <div id="playerB" class="yt-player"></div>
+    <div class="yt-preview" id="previewB"><div class="yt-preview-overlay"></div></div>
+    <div class="progress-zone">
+      <div class="progress-bar-wrap" onclick="seekDeck('B', event)">
+        <div class="progress-bar-fill" id="progressB"></div>
+        <div class="progress-bars" id="waveB"></div>
+      </div>
+      <div class="time-row">
+        <span id="timeB">0:00</span>
+        <span id="durB">0:00</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn play-btn" id="playBtnB" onclick="togglePlay('B')">▶</button>
+      <button class="btn stop-btn" onclick="stopDeck('B')">■</button>
+      <button class="btn" onclick="cue('B')">CUE</button>
+      <button class="btn" id="syncBtnB" onclick="syncDeck('B')">SYNC</button>
+      <button class="btn" id="loopBtnB" onclick="toggleLoop('B')">LOOP</button>
+    </div>
+    <div class="vol-zone">
+      <span class="vol-label">VOL</span>
+      <div class="slider-wrap"><input type="range" min="0" max="100" value="80" oninput="setVol('B', this.value)" id="volB"></div>
+      <span class="vol-val" id="volValB">80</span>
+    </div>
+    <div class="eq-zone">
+      <div class="eq-label-row">
+        <span>EQ</span>
+        <span style="cursor:pointer;color:var(--text-muted)" onclick="resetEq('B')">RESET</span>
+      </div>
+      <div class="eq-sliders">
+        <div class="eq-band">
+          <span class="eq-val" id="eqValB0">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',0,this.value)">
+          <span class="eq-band-label">32</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValB1">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',1,this.value)">
+          <span class="eq-band-label">250</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValB2">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',2,this.value)">
+          <span class="eq-band-label">1K</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValB3">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',3,this.value)">
+          <span class="eq-band-label">4K</span>
+        </div>
+        <div class="eq-band">
+          <span class="eq-val" id="eqValB4">0</span>
+          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',4,this.value)">
+          <span class="eq-band-label">16K</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORTINA -->
+  <div class="cortina-panel">
+    <div class="cortina-label">CORTINA</div>
+    <div class="cortina-search">
+      <input class="search-input" id="searchC" placeholder="buscar cortina..." onkeypress="if(event.key==='Enter') search('C')" style="max-width:280px">
+      <button class="btn" onclick="search('C')">BUSCAR</button>
+    </div>
+    <div id="playerC" class="yt-player"></div>
+    <div class="results" id="resultsC" style="max-height:60px;min-width:200px"></div>
+    <span class="cortina-np" id="npC">— sin cortina —</span>
+    <div class="cortina-controls">
+      <button class="btn play-btn" id="playBtnC" onclick="togglePlay('C')">▶</button>
+      <button class="btn stop-btn" onclick="stopDeck('C')">■</button>
+    </div>
+    <div class="cortina-vol">
+      <span class="vol-label" style="font-size:10px;color:var(--text-dim)">VOL</span>
+      <input type="range" min="0" max="100" value="60" oninput="setVol('C', this.value)" style="width:80px">
+    </div>
+  </div>
+
+</div>
+
+<script>
+let API_KEY = 'AIzaSyDWTnpLYZw5ybQNFpJAyVQt6C8vRPR2UZU';
+let fadeSpeed = 'fast';
+
+function setFadeSpeed(speed) {
+  fadeSpeed = speed;
+  document.getElementById('fadeSlowBtn').style.background = speed === 'slow' ? '#1a3d1a' : '#1a3010';
+  document.getElementById('fadeSlowBtn').style.borderColor = speed === 'slow' ? '#2d6a2d' : '#3a5010';
+  document.getElementById('fadeSlowBtn').style.color = speed === 'slow' ? '#4a9a4a' : '#8a9a30';
+  document.getElementById('fadeFastBtn').style.background = speed === 'fast' ? '#1a3d1a' : '';
+  document.getElementById('fadeFastBtn').style.borderColor = speed === 'fast' ? '#2d6a2d' : '';
+  document.getElementById('fadeFastBtn').style.color = speed === 'fast' ? '#4a9a4a' : '';
+}
+
+function autoFadeDir(target) {
+  const targetVal = target === 'A' ? 0 : 100;
+  const secs = fadeSpeed === 'slow' ? 12 : 3;
+  autoFadeTo(targetVal, secs);
+}
+
+function autoFadeTo(target, seconds) {
+  const steps = seconds * 10;
+  const start = crossfade;
+  let step = 0;
+  const el = document.getElementById('crossfader');
+  const interval = setInterval(() => {
+    step++;
+    const val = start + (target - start) * (step / steps);
+    crossfade = Math.round(val);
+    el.value = crossfade;
+    applyVolume('A');
+    applyVolume('B');
+    if (step >= steps) clearInterval(interval);
+  }, 100);
+}
+let players = { A: null, B: null, C: null };
+let playing = { A: false, B: false, C: false };
+let looping = { A: false, B: false, C: false };
+let volumes = { A: 80, B: 80, C: 60 };
+let crossfade = 50;
+let masterVol = 80;
+let tempos = { A: 128, B: 128 };
+let cuePoints = { A: 0, B: 0 };
+let eqNodes = { A: [], B: [] };
+let audioCtx = null;
+let progressInterval = null;
+
+// API KEY
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (k) {
+    API_KEY = k;
+    localStorage.setItem('yt_api_key', k);
+    document.getElementById('apiModal').style.display = 'none';
+  }
+}
+
+if (true) {
+  document.getElementById('apiModal').style.display = 'none';
+  document.getElementById('apiKeyInput').value = API_KEY;
+}
+
+// YOUTUBE API
+function onYouTubeIframeAPIReady() {
+  // Players se crean al cargar un track
+}
+
+function createPlayer(deck, videoId) {
+  const containerId = 'player' + deck;
+  if (players[deck]) {
+    players[deck].destroy();
+    players[deck] = null;
+  }
+  // Mostrar preview visual
+  const previewEl = document.getElementById('preview' + deck);
+  if (previewEl) {
+    const overlay = previewEl.querySelector('.yt-preview-overlay');
+    previewEl.innerHTML = '';
+    if (overlay) previewEl.appendChild(overlay);
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=0&modestbranding=1&rel=0`;
+    iframe.allow = 'autoplay';
+    previewEl.appendChild(iframe);
+  }
+
+  players[deck] = new YT.Player(containerId, {
+    height: '1', width: '1',
+    videoId: videoId,
+    playerVars: { autoplay: 0, controls: 0, loop: 0 },
+    events: {
+      onReady: (e) => {
+        applyVolume(deck);
+        generateWave(deck);
+        document.getElementById('dot-' + deck.toLowerCase()) && 
+          (document.getElementById('dot-' + deck.toLowerCase()).className = 'status-dot on');
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) {
+          playing[deck] = false;
+          updatePlayBtn(deck);
+          if (looping[deck]) {
+            players[deck].seekTo(cuePoints[deck] || 0);
+            players[deck].playVideo();
+            playing[deck] = true;
+            updatePlayBtn(deck);
+          }
+        }
+        if (e.data === YT.PlayerState.PLAYING) {
+          playing[deck] = true;
+          updatePlayBtn(deck);
+          startProgress();
+        }
+        if (e.data === YT.PlayerState.PAUSED) {
+          playing[deck] = false;
+          updatePlayBtn(deck);
+        }
+      }
+    }
+  });
+}
+
+// SEARCH
+async function search(deck) {
+  const q = document.getElementById('search' + deck).value.trim();
+  if (!q || !API_KEY) return;
+  const res = document.getElementById('results' + deck);
+  res.innerHTML = '<div class="loading">buscando...</div>';
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&videoCategoryId=10&maxResults=6&key=${API_KEY}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (!data.items || data.items.length === 0) { res.innerHTML = '<div class="loading">sin resultados</div>'; return; }
+    res.innerHTML = '';
+    data.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.innerHTML = `
+        <img class="ri-thumb" src="${item.snippet.thumbnails.default.url}" alt="">
+        <span class="ri-title">${item.snippet.title}</span>
+      `;
+      div.onclick = () => loadTrack(deck, item.id.videoId, item.snippet.title, item.snippet.channelTitle);
+      res.appendChild(div);
+    });
+  } catch(e) { res.innerHTML = '<div class="loading">error de búsqueda</div>'; }
+}
+
+function loadTrack(deck, videoId, title, channel) {
+  if (deck === 'C') {
+    document.getElementById('npC').textContent = title;
+  } else {
+    document.getElementById('npTitle' + deck).textContent = title;
+    document.getElementById('npSub' + deck).textContent = channel;
+    document.getElementById('results' + deck).innerHTML = '';
+  }
+  createPlayer(deck, videoId);
+  playing[deck] = false;
+  updatePlayBtn(deck);
+}
+
+// PLAYBACK
+function togglePlay(deck) {
+  if (!players[deck]) return;
+  if (playing[deck]) {
+    players[deck].pauseVideo();
+  } else {
+    players[deck].playVideo();
+  }
+}
+
+function stopDeck(deck) {
+  if (!players[deck]) return;
+  players[deck].stopVideo();
+  playing[deck] = false;
+  updatePlayBtn(deck);
+  if (deck !== 'C') {
+    document.getElementById('progress' + deck).style.width = '0%';
+    document.getElementById('time' + deck).textContent = '0:00';
+  }
+}
+
+function cue(deck) {
+  if (!players[deck]) return;
+  const t = players[deck].getCurrentTime() || 0;
+  cuePoints[deck] = t;
+  players[deck].pauseVideo();
+  players[deck].seekTo(t);
+}
+
+function syncDeck(deck) {
+  const other = deck === 'A' ? 'B' : 'A';
+  tempos[deck] = tempos[other];
+  document.getElementById('tempo' + deck).textContent = tempos[deck];
+  document.getElementById('sync' + 'Btn' + deck).classList.add('active');
+  setTimeout(() => document.getElementById('sync' + 'Btn' + deck).classList.remove('active'), 500);
+}
+
+function toggleLoop(deck) {
+  looping[deck] = !looping[deck];
+  document.getElementById('loopBtn' + deck).classList.toggle('active', looping[deck]);
+}
+
+function updatePlayBtn(deck) {
+  const btn = document.getElementById('playBtn' + deck);
+  if (!btn) return;
+  btn.innerHTML = playing[deck] ? '⏸' : '▶';
+  btn.classList.toggle('playing', playing[deck]);
+}
+
+// VOLUME & CROSSFADER
+function applyVolume(deck) {
+  if (!players[deck]) return;
+  let vol = volumes[deck];
+  if (deck === 'A') vol = vol * (1 - crossfade / 100) * (masterVol / 100) * 1.25;
+  if (deck === 'B') vol = vol * (crossfade / 100) * (masterVol / 100) * 1.25;
+  if (deck === 'C') vol = vol * (masterVol / 100);
+  vol = Math.min(100, Math.round(vol));
+  players[deck].setVolume(vol);
+}
+
+function setVol(deck, val) {
+  volumes[deck] = parseInt(val);
+  document.getElementById('volVal' + deck) && (document.getElementById('volVal' + deck).textContent = val);
+  applyVolume(deck);
+}
+
+function setCrossfader(val) {
+  crossfade = parseInt(val);
+  applyVolume('A');
+  applyVolume('B');
+}
+
+function setMasterVol(val) {
+  masterVol = parseInt(val);
+  applyVolume('A');
+  applyVolume('B');
+  applyVolume('C');
+}
+
+// EQ (simulated - YT API no expone audio nodes directamente)
+function setEq(deck, band, val) {
+  document.getElementById('eqVal' + deck + band).textContent = val > 0 ? '+' + val : val;
+}
+
+function resetEq(deck) {
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('eqVal' + deck + i).textContent = '0';
+  }
+  document.querySelectorAll('#deck' + deck + ' .eq-band input').forEach(el => el.value = 0);
+}
+
+// TEMPO / PITCH
+function setTempo(deck, val) {
+  tempos[deck] = parseInt(val);
+  document.getElementById('tempo' + deck).textContent = val;
+  if (players[deck] && players[deck].setPlaybackRate) {
+    const rate = val / 128;
+    players[deck].setPlaybackRate(Math.min(2, Math.max(0.25, rate)));
+  }
+}
+
+function setPitch(deck, val) {
+  // Pitch shift via playbackRate approximation
+  if (players[deck] && players[deck].setPlaybackRate) {
+    const semitones = parseInt(val);
+    const rate = Math.pow(2, semitones / 12);
+    players[deck].setPlaybackRate(Math.min(2, Math.max(0.25, rate)));
+  }
+}
+
+// SEEK
+function seekDeck(deck, event) {
+  if (!players[deck]) return;
+  const bar = event.currentTarget;
+  const pct = event.offsetX / bar.offsetWidth;
+  const dur = players[deck].getDuration() || 0;
+  players[deck].seekTo(pct * dur);
+}
+
+// PROGRESS
+function startProgress() {
+  if (progressInterval) return;
+  progressInterval = setInterval(updateProgress, 500);
+}
+
+function updateProgress() {
+  ['A', 'B'].forEach(deck => {
+    if (!players[deck]) return;
+    try {
+      const cur = players[deck].getCurrentTime() || 0;
+      const dur = players[deck].getDuration() || 0;
+      if (dur > 0) {
+        document.getElementById('progress' + deck).style.width = (cur / dur * 100) + '%';
+        document.getElementById('time' + deck).textContent = fmt(cur);
+        document.getElementById('dur' + deck).textContent = fmt(dur);
+      }
+    } catch(e) {}
+  });
+}
+
+function fmt(s) {
+  const m = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return m + ':' + (ss < 10 ? '0' : '') + ss;
+}
+
+// WAVE VISUALIZATION
+function generateWave(deck) {
+  const container = document.getElementById('wave' + deck);
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < 60; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar-item';
+    const h = 15 + Math.random() * 85;
+    bar.style.height = h + '%';
+    container.appendChild(bar);
+  }
+}
+
+// AUTO FADE
+function autoFade(seconds) {
+  const target = crossfade < 50 ? 100 : 0;
+  autoFadeTo(target, seconds);
+}
+
+// Load YouTube API
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+
+// Generate initial waves
+['A', 'B'].forEach(d => generateWave(d));
+</script>
+</body>
+</html>

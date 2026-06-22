@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ Roots — Bandeja DJ Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050805;
+  --surface:rgba(9,14,9,0.85);
+  --green:#3ecf3e;
+  --yellow:#f5c200;
+  --red:#e03030;
+  --white:#f0f0e8;
+  --dim:#5a6a5a;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --serif:'EB Garamond',Georgia,serif;
+}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--white);overflow-x:hidden;}
+
+/* BG textura */
+.bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 40%, rgba(62,207,62,0.04) 0%, transparent 60%),
+  radial-gradient(ellipse 60% 80% at 80% 70%, rgba(245,194,0,0.03) 0%, transparent 60%),
+  repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 3px);
+}
+
+/* HEADER */
+nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid rgba(245,194,0,0.12);}
+.nav-brand{font-family:var(--display);font-size:26px;letter-spacing:.18em;color:var(--yellow);}
+.nav-brand span{color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.14em;margin-left:10px;vertical-align:middle;}
+.nav-back{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-decoration:none;transition:color .2s;}
+.nav-back:hover{color:var(--white);}
+
+/* HERO */
+.hero{position:relative;z-index:5;padding:80px 40px 60px;text-align:center;max-width:900px;margin:0 auto;}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:12px;}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:40px;height:1px;background:var(--green);opacity:.4;}
+.hero-title{font-family:var(--display);font-size:clamp(72px,12vw,130px);letter-spacing:.06em;line-height:.9;color:var(--white);margin-bottom:8px;}
+.hero-title span{color:var(--yellow);}
+.hero-subtitle{font-family:var(--serif);font-style:italic;font-size:clamp(18px,2.5vw,24px);color:rgba(240,240,232,0.55);margin-bottom:40px;line-height:1.5;}
+
+/* STRIPE */
+.stripe{display:flex;gap:3px;justify-content:center;margin-bottom:48px;}
+.stripe div{height:2px;border-radius:1px;}
+.s1{width:60px;background:var(--green);}
+.s2{width:20px;background:var(--yellow);}
+.s3{width:10px;background:var(--red);}
+
+/* FEATURE GRID */
+.features{position:relative;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;max-width:900px;margin:0 auto 80px;background:rgba(245,194,0,0.1);}
+.feat{background:var(--bg);padding:36px 28px;text-align:left;}
+.feat-icon{font-size:28px;margin-bottom:16px;display:block;}
+.feat-title{font-family:var(--display);font-size:22px;letter-spacing:.1em;color:var(--yellow);margin-bottom:8px;}
+.feat-desc{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--dim);}
+
+/* DEMO STRIP */
+.demo-strip{position:relative;z-index:5;max-width:900px;margin:0 auto 80px;padding:0 40px;}
+.ds-inner{border:1px solid rgba(245,194,0,0.2);padding:32px 40px;display:flex;align-items:center;justify-content:space-between;gap:32px;background:rgba(9,14,9,0.6);}
+.ds-text h2{font-family:var(--display);font-size:38px;letter-spacing:.1em;color:var(--white);margin-bottom:8px;}
+.ds-text p{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--dim);max-width:380px;}
+.ds-text p strong{color:var(--yellow);}
+.ds-cta{flex-shrink:0;}
+
+/* CTA BUTTON */
+.btn-cta{display:inline-block;font-family:var(--display);font-size:22px;letter-spacing:.18em;color:var(--bg);background:var(--green);padding:18px 44px;text-decoration:none;transition:all .25s;border:none;cursor:pointer;position:relative;overflow:hidden;}
+.btn-cta::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .2s;}
+.btn-cta:hover{background:#4de84d;transform:translateY(-2px);box-shadow:0 8px 30px rgba(62,207,62,0.3);}
+.btn-cta.yellow{background:var(--yellow);color:var(--bg);}
+.btn-cta.yellow:hover{background:#ffe040;box-shadow:0 8px 30px rgba(245,194,0,0.3);}
+.btn-sub{display:block;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--dim);margin-top:10px;}
+
+/* CUSTOMIZATION SECTION */
+.custom-section{position:relative;z-index:5;max-width:900px;margin:0 auto 80px;padding:0 40px;}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--green);margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:'';flex:1;height:1px;background:rgba(62,207,62,0.2);}
+.custom-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.custom-item{border-left:2px solid rgba(245,194,0,0.25);padding:20px 24px;}
+.custom-item h3{font-family:var(--display);font-size:20px;letter-spacing:.1em;color:var(--yellow);margin-bottom:8px;}
+.custom-item p{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--dim);}
+
+/* PRICING */
+.pricing{position:relative;z-index:5;max-width:900px;margin:0 auto 80px;padding:0 40px;text-align:center;}
+.price-card{border:1px solid rgba(245,194,0,0.3);padding:48px;background:rgba(9,14,9,0.8);display:inline-block;min-width:320px;}
+.price-label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--dim);margin-bottom:16px;}
+.price-amount{font-family:var(--display);font-size:72px;letter-spacing:.05em;color:var(--yellow);line-height:1;}
+.price-period{font-family:var(--mono);font-size:13px;color:var(--dim);margin-bottom:32px;}
+.price-list{list-style:none;margin-bottom:36px;text-align:left;}
+.price-list li{font-family:var(--mono);font-size:12px;color:var(--dim);padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:10px;}
+.price-list li::before{content:'▸';color:var(--green);}
+
+/* TIMER WARNING */
+.trial-info{position:relative;z-index:5;max-width:900px;margin:0 auto 60px;padding:0 40px;}
+.ti-inner{background:rgba(245,194,0,0.05);border:1px solid rgba(245,194,0,0.15);padding:20px 32px;display:flex;align-items:center;gap:20px;}
+.ti-icon{font-size:20px;flex-shrink:0;}
+.ti-text{font-family:var(--mono);font-size:12px;color:var(--dim);line-height:1.7;}
+.ti-text strong{color:var(--yellow);}
+
+/* FOOTER */
+footer{position:relative;z-index:5;border-top:1px solid rgba(245,194,0,0.1);padding:28px 40px;display:flex;justify-content:space-between;align-items:center;}
+.footer-brand{font-family:var(--display);font-size:18px;letter-spacing:.2em;color:var(--yellow);}
+.footer-text{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.12em;}
+
+@media(max-width:700px){
+  nav{padding:16px 20px;}
+  .hero{padding:50px 20px 40px;}
+  .features{grid-template-columns:1fr;}
+  .ds-inner{flex-direction:column;text-align:center;}
+  .ds-text p{max-width:100%;}
+  .custom-grid{grid-template-columns:1fr;}
+  .demo-strip,.custom-section,.pricing,.trial-info{padding:0 20px;}
+  footer{flex-direction:column;gap:12px;text-align:center;padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<nav>
+  <div class="nav-brand">DJ ROOTS <span>by Sr.M</span></div>
+  <a href="produccion_alumnos.html" class="nav-back">← Producción</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Herramienta profesional</div>
+  <h1 class="hero-title">DJ<br><span>ROOTS</span></h1>
+  <p class="hero-subtitle">Una bandeja DJ completa en tu navegador.<br>Sin instalar nada. Con tus canciones de YouTube.</p>
+  <div class="stripe"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+  <a href="dj-roots-prueba.html" class="btn-cta yellow">PROBÁ GRATIS 10 MIN →</a>
+  <span class="btn-sub">sin registro · sin descarga · renovable cada 24 hs</span>
+</section>
+
+<section class="features">
+  <div class="feat">
+    <span class="feat-icon">🎚</span>
+    <div class="feat-title">Dos decks independientes</div>
+    <p class="feat-desc">Cargá un track diferente en cada plato. Controlá reproducción, volumen, tempo y pitch por separado.</p>
+  </div>
+  <div class="feat">
+    <span class="feat-icon">🎧</span>
+    <div class="feat-title">Crossfader y mezcla</div>
+    <p class="feat-desc">Fader central para hacer transiciones suaves entre decks. AutoFade configurable en segundos.</p>
+  </div>
+  <div class="feat">
+    <span class="feat-icon">🔍</span>
+    <div class="feat-title">Búsqueda en YouTube</div>
+    <p class="feat-desc">Buscá cualquier canción directamente desde la bandeja y cargala en el deck en un clic.</p>
+  </div>
+  <div class="feat">
+    <span class="feat-icon">🎛</span>
+    <div class="feat-title">EQ de 5 bandas</div>
+    <p class="feat-desc">Ecualizador por deck para moldear el sonido: graves, medios bajos, medios, medios altos y agudos.</p>
+  </div>
+  <div class="feat">
+    <span class="feat-icon">🎵</span>
+    <div class="feat-title">Cortina / tercer canal</div>
+    <p class="feat-desc">Canal dedicado para jingles o cortinas de ambiente, con volumen independiente.</p>
+  </div>
+  <div class="feat">
+    <span class="feat-icon">⚡</span>
+    <div class="feat-title">Loop, Cue y Sync</div>
+    <p class="feat-desc">Marcá puntos de entrada, activá bucles y sincronizá el tempo entre decks.</p>
+  </div>
+</section>
+
+<section class="demo-strip">
+  <div class="ds-inner">
+    <div class="ds-text">
+      <h2>Probalo ahora mismo</h2>
+      <p>Tenés <strong>10 minutos gratuitos</strong> para usar la bandeja completa con los videos de YouTube que quieras. Al terminar, si querés seguir es tuyo para siempre.</p>
+    </div>
+    <div class="ds-cta">
+      <a href="dj-roots-prueba.html" class="btn-cta">ENTRAR A LA PRUEBA →</a>
+      <span class="btn-sub">10 min gratis · se renueva en 24 hs</span>
+    </div>
+  </div>
+</section>
+
+<section class="custom-section">
+  <div class="section-label">Personalización total</div>
+  <div class="custom-grid">
+    <div class="custom-item">
+      <h3>Colores y tema</h3>
+      <p>Tu marca, tus colores. El skin de la bandeja se adapta a cualquier paleta: oscuro, claro, neón, minimalista.</p>
+    </div>
+    <div class="custom-item">
+      <h3>Efectos visuales</h3>
+      <p>VU meters animados, visualizadores de onda, efectos de brillo y partículas en tiempo real.</p>
+    </div>
+    <div class="custom-item">
+      <h3>Tipografía y logo</h3>
+      <p>Cambiá las fuentes, agregá tu logo y hacé que la interfaz sea tan tuya como tu música.</p>
+    </div>
+    <div class="custom-item">
+      <h3>Funciones extras</h3>
+      <p>¿Necesitás algo específico? Hotkeys, samplers, grabación, integración con otras plataformas. Hablamos.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pricing">
+  <div class="section-label" style="justify-content:center;">Lo tuyo para siempre</div>
+  <div class="price-card">
+    <div class="price-label">LICENCIA DE USO PERSONAL</div>
+    <div class="price-amount">$XX</div>
+    <div class="price-period">pago único · tuyo de por vida</div>
+    <ul class="price-list">
+      <li>Bandeja DJ completa en tu navegador</li>
+      <li>Búsqueda ilimitada en YouTube</li>
+      <li>Actualizaciones incluidas</li>
+      <li>Personalización básica de colores</li>
+      <li>Soporte vía WhatsApp/email</li>
+    </ul>
+    <a href="dj-roots-compra.html" class="btn-cta yellow" style="width:100%;text-align:center;display:block;">QUIERO DJ ROOTS →</a>
+  </div>
+</section>
+
+<section class="trial-info">
+  <div class="ti-inner">
+    <span class="ti-icon">⏱</span>
+    <p class="ti-text">La prueba gratuita dura <strong>10 minutos</strong> y se controla por dispositivo. Pasado ese tiempo te lleva a la página de compra. <strong>Cada 24 horas</strong> se renueva y podés volver a probar.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">DJ ROOTS</div>
+  <div class="footer-text">© 2025 Roots · portalroots.com</div>
+</footer>
+
+</body>
+</html>

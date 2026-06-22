@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor Trading — Portal Roots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:        #0a0a0a;
+    --bg2:       #111111;
+    --bg3:       #181818;
+    --border:    #222222;
+    --border2:   #2e2e2e;
+    --text:      #ddd8cc;
+    --text2:     #888880;
+    --text3:     #555550;
+    --gold:      #c8b97a;
+    --gold2:     #a8955a;
+    --green:     #4ade80;
+    --red:       #f87171;
+    --amber:     #fbbf24;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'EB Garamond', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 52px;
+  }
+
+  .nav-logo {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--gold);
+    letter-spacing: 0.01em;
+    text-decoration: none;
+  }
+
+  .nav-logo em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text3);
+    margin-left: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    color: var(--text3);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links a:hover { color: var(--text); background: var(--bg3); }
+  .nav-links a.active { color: var(--gold); }
+
+  /* ── MAIN LAYOUT ── */
+  .monitor-wrap {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 52px);
+    overflow: hidden;
+  }
+
+  /* ── CONTROLS BAR ── */
+  .controls-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg2);
+    flex-wrap: wrap;
+  }
+
+  .ctrl-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ctrl-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  select, .g-btn {
+    background: var(--bg3);
+    border: 0.5px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.15s;
+    appearance: none;
+  }
+
+  select:focus, select:hover { border-color: var(--gold2); }
+
+  .g-btn:hover { background: #222; border-color: #444; }
+
+  .g-btn-analyze {
+    background: rgba(200,185,122,0.08);
+    border-color: rgba(200,185,122,0.3);
+    color: var(--gold);
+    padding: 7px 16px;
+    font-weight: 500;
+  }
+
+  .g-btn-analyze:hover {
+    background: rgba(200,185,122,0.15);
+    border-color: var(--gold);
+  }
+
+  .g-btn-analyze.loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
+  }
+
+  .pair-display {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.03em;
+  }
+
+  .controls-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  /* ── CHART ── */
+  .chart-area {
+    background: var(--bg);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chart-area iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* ── SIDE PANEL ── */
+  .side-panel {
+    background: var(--bg2);
+    border-left: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .panel-tab {
+    flex: 1;
+    padding: 11px 8px;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-family: var(--mono);
+    transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+
+  .panel-tab:hover { color: var(--text2); }
+
+  .panel-tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  /* ── GENESIS ANALYSIS TAB ── */
+  .genesis-tab-content {
+    padding: 16px;
+    display: none;
+  }
+
+  .genesis-tab-content.active { display: block; }
+
+  .genesis-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .genesis-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: gdot 2.5s infinite;
+  }
+
+  @keyframes gdot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.2; }
+  }
+
+  .genesis-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--text3);
+    font-size: 11px;
+    line-height: 1.9;
+  }
+
+  .empty-state svg {
+    display: block;
+    margin: 0 auto 14px;
+    opacity: 0.25;
+  }
+
+  .trend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  .trend-badge.bull { background: rgba(74,222,128,0.1); color: var(--green); border: 0.5px solid rgba(74,222,128,0.25); }
+  .trend-badge.bear { background: rgba(248,113,113,0.1); color: var(--red); border: 0.5px solid rgba(248,113,113,0.25); }
+  .trend-badge.neutral { background: rgba(200,185,122,0.1); color: var(--gold); border: 0.5px solid rgba(200,185,122,0.25); }
+
+  .analysis-text {
+    font-size: 11.5px;
+    line-height: 1.8;
+    color: #9d9888;
+    white-space: pre-wrap;
+  }
+
+  .analysis-text strong {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text3);
+  }
+
+  .meta-row span:last-child { color: var(--text2); }
+
+  .meta-section { margin-top: 16px; }
+
+  .meta-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .loading-msg {
+    font-size: 11px;
+    color: var(--text3);
+    animation: blink 1s infinite;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── CANDLES DICTIONARY TAB ── */
+  .candles-tab-content {
+    padding: 14px;
+    display: none;
+  }
+
+  .candles-tab-content.active { display: block; }
+
+  .candle-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .filter-btn {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { color: var(--text); border-color: #444; }
+  .filter-btn.active-f { color: var(--gold); border-color: var(--gold2); background: rgba(200,185,122,0.08); }
+
+  .candle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .candle-card {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .candle-card:hover {
+    border-color: var(--border2);
+    background: #1e1e1e;
+  }
+
+  .candle-card.bull-c { border-left: 2px solid rgba(74,222,128,0.4); }
+  .candle-card.bear-c { border-left: 2px solid rgba(248,113,113,0.4); }
+  .candle-card.neutral-c { border-left: 2px solid rgba(200,185,122,0.3); }
+
+  .candle-visual {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+    height: 50px;
+    align-items: center;
+  }
+
+  .candle-name {
+    font-size: 10px;
+    color: var(--text2);
+    text-align: center;
+    margin-bottom: 4px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+
+  .candle-signal {
+    font-size: 9px;
+    text-align: center;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .candle-signal.bull { color: var(--green); }
+  .candle-signal.bear { color: var(--red); }
+  .candle-signal.neutral { color: var(--gold); }
+
+  /* Candle SVG drawings */
+  svg.cndl { overflow: visible; }
+
+  /* ── EXPANDED CANDLE MODAL ── */
+  .candle-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .candle-modal.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 380px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--gold);
+    line-height: 1.2;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-visual {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+    height: 100px;
+    align-items: center;
+    background: var(--bg3);
+    border-radius: 8px;
+  }
+
+  .modal-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    margin-bottom: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .modal-badge.bull { background: rgba(74,222,128,0.12); color: var(--green); }
+  .modal-badge.bear { background: rgba(248,113,113,0.12); color: var(--red); }
+  .modal-badge.neutral { background: rgba(200,185,122,0.12); color: var(--gold); }
+
+  .modal-desc {
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--text2);
+    margin-bottom: 14px;
+  }
+
+  .modal-how {
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text3);
+    border-left: 2px solid var(--border2);
+    padding-left: 12px;
+    margin-bottom: 14px;
+  }
+
+  .modal-trade {
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text2);
+  }
+
+  .modal-trade-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  /* ── SCROLLBARS ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .monitor-wrap {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr;
+      height: auto;
+    }
+    .side-panel {
+      border-left: none;
+      border-top: 0.5px solid var(--border);
+      height: 500px;
+    }
+    .chart-area { height: 360px; }
+    nav em { display: none; }
+  }
+.live-ticker{display:flex;align-items:baseline;gap:10px;margin-left:14px;padding:4px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.lt-price{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px;transition:color .2s;}
+.lt-change{font-size:13px;font-weight:600;}
+.lt-up{color:#3ecf3e;}
+.lt-down{color:#e03030;}
+.lt-flash{animation:ltflash .4s ease;}
+@keyframes ltflash{0%{opacity:.4;}100%{opacity:1;}}
+.candle-timer{display:flex;align-items:center;gap:8px;margin-left:12px;padding:4px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.ct-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;}
+.ct-time{font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;letter-spacing:1px;color:#f5c200;min-width:54px;text-align:center;}
+.ct-time.ct-warn{color:#e03030;animation:ctblink .5s steps(2,start) infinite;}
+@keyframes ctblink{50%{opacity:.3;}}
+.ct-alarm{background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;border-radius:6px;opacity:.7;transition:opacity .2s,background .2s;}
+.ct-alarm:hover{opacity:1;background:rgba(255,255,255,.06);}
+.ct-alarm.on{opacity:1;}
+</style>
+</head>
+<body>
+<div style="display:flex;height:2px;width:100%;"><div style="background:#3ecf3e;flex:1"></div><div style="background:#f5c200;flex:1"></div><div style="background:#e03030;flex:1"></div></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <a href="produccion.html" style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8a9a8a;text-decoration:none;border:0.5px solid #3a4a3a;padding:6px 12px;transition:color .2s,border-color .2s;" onmouseover="this.style.color='#3ecf3e';this.style.borderColor='#3ecf3e'" onmouseout="this.style.color='#8a9a8a';this.style.borderColor='#3a4a3a'">← Producción</a>
+    <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;letter-spacing:.1em;"><span style="color:#3ecf3e">ROO</span><span style="color:#f5c200">T</span><span style="color:#e03030">S</span> <span style="color:#f5c200;font-size:14px;">Monitor</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="monitor.html" class="active">Monitor</a>
+  </div>
+</nav>
+
+<!-- ── MONITOR ── -->
+<div class="monitor-wrap">
+
+  <!-- CONTROLS BAR -->
+  <div class="controls-bar">
+    <div class="live-dot"></div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">par</span>
+      <select id="symbolSel" onchange="updateChart()">
+        <option value="DOGEUSDT">DOGE/USDT</option>
+        <option value="LINKUSDT">LINK/USDT</option>
+        <option value="BTCUSDT" selected>BTC/USDT</option>
+        <option value="ETHUSDT">ETH/USDT</option>
+        <option value="SOLUSDT">SOL/USDT</option>
+        <option value="BNBUSDT">BNB/USDT</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">tf</span>
+      <select id="tfSel" onchange="updateChart()">
+        <option value="1">1m</option>
+        <option value="3">3m</option>
+        <option value="5">5m</option>
+        <option value="15" selected>15m</option>
+        <option value="30">30m</option>
+        <option value="60">1h</option>
+        <option value="240">4h</option>
+        <option value="D">1D</option>
+      </select>
+    </div>
+    <span class="pair-display" id="pairDisplay">BTC/USDT · 15m</span>
+    <div class="live-ticker" id="liveTicker">
+      <span class="lt-price" id="ltPrice">—</span>
+      <span class="lt-change" id="ltChange">—</span>
+    </div>
+    <div class="candle-timer" id="candleTimer" title="Tiempo hasta el cierre de la vela actual">
+      <span class="ct-label">cierre</span>
+      <span class="ct-time" id="ctTime">--:--</span>
+      <button class="ct-alarm" id="ctAlarm" onclick="toggleAlarm()" title="Alarma a los 10s del cierre">🔕</button>
+    </div>
+    <div class="controls-right">
+      <button class="g-btn" onclick="cycleTheme()">◑ tema</button>
+      <button class="g-btn g-btn-analyze" id="analyzeBtn" onclick="analyzeChart()">✦ analizar con Génesis</button>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-area">
+    <iframe id="tvFrame" title="Gráfico TradingView"></iframe>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side-panel">
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchTab('genesis', this)">Génesis IA</button>
+      <button class="panel-tab" onclick="switchTab('candles', this)">Velas</button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- TAB: GÉNESIS -->
+      <div class="genesis-tab-content active" id="tab-genesis">
+        <div class="genesis-header">
+          <div class="genesis-dot"></div>
+          <div class="genesis-name">Génesis</div>
+        </div>
+
+        <div id="genesisEmpty" class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-8"/>
+          </svg>
+          Seleccioná un par<br>y presioná <strong style="color:var(--gold)">✦ analizar</strong><br>para obtener análisis en vivo
+        </div>
+
+        <div id="genesisResult" style="display:none">
+          <div id="trendBadge" class="trend-badge neutral">→ lateral</div>
+          <div class="analysis-text" id="analysisText"></div>
+          <div class="meta-section">
+            <div class="meta-label">datos del análisis</div>
+            <div class="meta-row"><span>par</span><span id="metaPar">—</span></div>
+            <div class="meta-row"><span>timeframe</span><span id="metaTf">—</span></div>
+            <div class="meta-row"><span>generado</span><span id="metaTime">—</span></div>
+          </div>
+        </div>
+        <div id="genesisLoading" style="display:none" class="loading-msg">Génesis analizando el mercado...</div>
+        <div id="genesisError" style="display:none; color:var(--red); font-size:11px; padding:10px 0;"></div>
+      </div>
+
+      <!-- TAB: VELAS -->
+      <div class="candles-tab-content" id="tab-candles">
+        <div class="candle-filter">
+          <button class="filter-btn active-f" onclick="filterCandles('all', this)">todas</button>
+          <button class="filter-btn" onclick="filterCandles('bull', this)">alcistas</button>
+          <button class="filter-btn" onclick="filterCandles('bear', this)">bajistas</button>
+          <button class="filter-btn" onclick="filterCandles('neutral', this)">indecisión</button>
+        </div>
+        <div class="candle-grid" id="candleGrid"></div>
+      </div>
+
+    </div><!-- /panel-body -->
+  </div><!-- /side-panel -->
+</div><!-- /monitor-wrap -->
+
+<!-- MODAL VELA -->
+<div class="candle-modal" id="candleModal" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-top">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBadge" class="modal-badge"></div>
+    <div class="modal-visual" id="modalVisual"></div>
+    <p class="modal-desc" id="modalDesc"></p>
+    <div class="modal-how" id="modalHow"></div>
+    <div class="modal-trade">
+      <div class="modal-trade-label">cómo tradear</div>
+      <div id="modalTrade"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════════
+let currentTheme = 'dark';
+let lastPrice = null;
+const themes = ['dark', 'light'];
+let themeIdx = 0;
+
+const tfMap = { '1':'1m','3':'3m','5':'5m','15':'15m','30':'30m','60':'1h','240':'4h','D':'1D' };
+
+function buildSrc() {
+  const sym = document.getElementById('symbolSel').value;
+  const tf  = document.getElementById('tfSel').value;
+  return `https://s.tradingview.com/widgetembed/?frameElementId=tv&symbol=BYBIT:${sym}&interval=${tf}&theme=${themes[themeIdx]}&style=1&timezone=America%2FArgentina%2FBuenos_Aires&toolbar_bg=%230e0e0e&enable_publishing=false&hide_top_toolbar=0&save_image=false&withdateranges=1&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies%1FBollingerBandsR%40tv-basicstudies&locale=es`;
+}
+
+function updateChart() {
+  const sym = document.getElementById('symbolSel').value;
+  const tf  = document.getElementById('tfSel').value;
+  document.getElementById('pairDisplay').textContent = sym.replace('USDT','/USDT') + ' · ' + (tfMap[tf]||tf);
+  document.getElementById('tvFrame').src = buildSrc();
+  lastPrice = null;
+  if (typeof refreshTicker === 'function') refreshTicker();
+}
+
+function cycleTheme() {
+  themeIdx = (themeIdx + 1) % themes.length;
+  updateChart();
+}
+
+updateChart();
+
+// ══════════════════════════════════════════════
+// PANEL TABS
+// ══════════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.genesis-tab-content, .candles-tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// DATOS REALES DE BYBIT (velas OHLCV, público sin key)
+// ══════════════════════════════════════════════
+async function fetchBybitKlines(symbol, interval, limit = 200) {
+  const url = `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Bybit no respondió (HTTP ' + r.status + ')');
+  const j = await r.json();
+  if (j.retCode !== 0) throw new Error('Bybit: ' + (j.retMsg || 'error'));
+  // Bybit devuelve más reciente primero -> [time, open, high, low, close, volume, turnover]
+  // lo invertimos a cronológico (viejo -> nuevo)
+  return j.result.list.map(k => ({
+    t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5]
+  })).reverse();
+}
+
+// ── Indicadores (calculados sobre datos reales, no inventados) ──
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return null;
+  let gains = 0, losses = 0;
+  for (let i = closes.length - period; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff >= 0) gains += diff; else losses -= diff;
+  }
+  const avgG = gains / period, avgL = losses / period;
+  if (avgL === 0) return 100;
+  const rs = avgG / avgL;
+  return +(100 - 100 / (1 + rs)).toFixed(1);
+}
+
+function ema(values, period) {
+  const k = 2 / (period + 1);
+  let e = values[0];
+  for (let i = 1; i < values.length; i++) e = values[i] * k + e * (1 - k);
+  return e;
+}
+
+function calcMACD(closes) {
+  if (closes.length < 35) return null;
+  const macdLine = ema(closes, 12) - ema(closes, 26);
+  // señal aproximada: EMA9 de la macdLine reconstruida de los últimos 35
+  const macdSeries = [];
+  for (let i = 26; i < closes.length; i++) {
+    const slice = closes.slice(0, i + 1);
+    macdSeries.push(ema(slice, 12) - ema(slice, 26));
+  }
+  const signal = ema(macdSeries, 9);
+  return { macd: +macdLine.toFixed(2), signal: +signal.toFixed(2), hist: +(macdLine - signal).toFixed(2) };
+}
+
+// ── Detección simple del patrón en la última vela ──
+function detectPattern(k) {
+  const n = k.length;
+  if (n < 2) return 'datos insuficientes';
+  const c = k[n - 1], p = k[n - 2];
+  const body = Math.abs(c.c - c.o);
+  const range = c.h - c.l || 1e-9;
+  const upper = c.h - Math.max(c.o, c.c);
+  const lower = Math.min(c.o, c.c) - c.l;
+  const bull = c.c > c.o, prevBear = p.c < p.o, prevBull = p.c > p.o;
+
+  if (body / range < 0.1) return 'Doji (indecisión)';
+  if (lower > body * 2 && upper < body) return bull ? 'Martillo (posible reversión alcista)' : 'Hombre Colgado (alerta bajista)';
+  if (upper > body * 2 && lower < body) return 'Estrella Fugaz (posible reversión bajista)';
+  if (bull && prevBear && c.c > p.o && c.o < p.c) return 'Envolvente Alcista (fuerte)';
+  if (!bull && prevBull && c.o > p.c && c.c < p.o) return 'Envolvente Bajista (fuerte)';
+  if (body / range > 0.9) return bull ? 'Marubozu Alcista (momentum fuerte)' : 'Marubozu Bajista (momentum fuerte)';
+  return bull ? 'Vela alcista normal' : 'Vela bajista normal';
+}
+
+// ══════════════════════════════════════════════
+// GÉNESIS ANALYSIS — datos reales -> tu función /api/analizar
+// ══════════════════════════════════════════════
+async function analyzeChart() {
+  const sym   = document.getElementById('symbolSel').value;
+  const tf    = document.getElementById('tfSel').value;
+  const pair  = sym.replace('USDT','/USDT');
+  const tfL   = tfMap[tf] || tf;
+  const now   = new Date();
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.classList.add('loading');
+  btn.textContent = '⟳ analizando...';
+
+  document.querySelectorAll('.panel-tab')[0].click();
+  document.getElementById('genesisEmpty').style.display   = 'none';
+  document.getElementById('genesisResult').style.display  = 'none';
+  document.getElementById('genesisError').style.display   = 'none';
+  document.getElementById('genesisLoading').style.display = 'block';
+
+  try {
+    // ① VELAS REALES
+    const k = await fetchBybitKlines(sym, tf, 200);
+    if (!k.length) throw new Error('No llegaron velas de Bybit');
+    const closes = k.map(x => x.c);
+    const last = k[k.length - 1];
+
+    // ② INDICADORES REALES
+    const rsi  = calcRSI(closes);
+    const macd = calcMACD(closes);
+    const max  = Math.max(...k.slice(-60).map(x => x.h));
+    const min  = Math.min(...k.slice(-60).map(x => x.l));
+    const pattern = detectPattern(k);
+    const chg = ((last.c - k[k.length - 2].c) / k[k.length - 2].c * 100).toFixed(2);
+
+    // últimas 12 velas resumidas para que Génesis "vea" el movimiento
+    const recent = k.slice(-12).map(x =>
+      `O:${x.o} H:${x.h} L:${x.l} C:${x.c} V:${x.v.toFixed(0)}`
+    ).join('\n');
+
+    const market = {
+      pair, tf: tfL, precio: last.c, cambio_pct: +chg,
+      rsi, macd,
+      resistencia: max, soporte: min,
+      patron_ultima_vela: pattern,
+      hora: now.toLocaleTimeString('es-AR'),
+      ultimas_velas: recent
+    };
+
+    // ③ LLAMADA A TU PROPIA FUNCIÓN (no a Anthropic directo)
+    const res = await fetch('https://genesis-analizar.rootsstudioar.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(market)
+    });
+
+    if (!res.ok) {
+      const errTxt = await res.text();
+      throw new Error('Servidor (' + res.status + '): ' + errTxt.slice(0, 120));
+    }
+
+    const data = await res.json();
+    const text = data.text || '';
+    if (!text) throw new Error('Respuesta vacía de Génesis');
+
+    const lower = text.toLowerCase();
+    const isBull = lower.includes('alcista') || lower.includes('comprar');
+    const isBear = lower.includes('bajista') || lower.includes('vender') || lower.includes('corto');
+
+    const badge = document.getElementById('trendBadge');
+    badge.className = 'trend-badge ' + (isBull ? 'bull' : isBear ? 'bear' : 'neutral');
+    badge.textContent = isBull ? '↑ alcista' : isBear ? '↓ bajista' : '→ lateral';
+
+    document.getElementById('analysisText').innerHTML =
+      text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+    document.getElementById('metaPar').textContent  = `${pair}  ($${last.c})`;
+    document.getElementById('metaTf').textContent   = `${tfL}  ·  RSI ${rsi ?? '—'}`;
+    document.getElementById('metaTime').textContent = now.toLocaleTimeString('es-AR');
+
+    document.getElementById('genesisLoading').style.display = 'none';
+    document.getElementById('genesisResult').style.display  = 'block';
+
+  } catch(e) {
+    document.getElementById('genesisLoading').style.display = 'none';
+    document.getElementById('genesisError').style.display   = 'block';
+    document.getElementById('genesisError').textContent     = 'Error: ' + e.message;
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = '✦ analizar con Génesis';
+}
+
+// ══════════════════════════════════════════════
+// CANDLE DATA
+// ══════════════════════════════════════════════
+const CANDLES = [
+  {
+    id: 'hammer', name: 'Martillo', signal: 'bull', class: 'bull-c',
+    svg: buildCandle({ bodyTop:30, bodyBot:38, wickTop:28, wickBot:50, color:'#4ade80', scale:1 }),
+    svgLarge: buildCandle({ bodyTop:20, bodyBot:36, wickTop:17, wickBot:70, color:'#4ade80', scale:1.8 }),
+    desc: 'Cuerpo pequeño en la parte alta con una sombra inferior larga (al menos 2x el cuerpo). Aparece tras una tendencia bajista.',
+    how: 'La sombra larga indica que los vendedores empujaron el precio hacia abajo, pero los compradores recuperaron el control y cerraron cerca del máximo.',
+    trade: 'Esperá confirmación en la siguiente vela (cierre alcista). Entrada sobre el máximo del martillo. Stop-loss bajo la sombra inferior. Objetivo mínimo 1:2.'
+  },
+  {
+    id: 'shooting_star', name: 'Estrella Fugaz', signal: 'bear', class: 'bear-c',
+    svg: buildCandle({ bodyTop:18, bodyBot:26, wickTop:2, wickBot:28, color:'#f87171', scale:1 }),
+    svgLarge: buildCandle({ bodyTop:34, bodyBot:50, wickTop:2, wickBot:54, color:'#f87171', scale:1.8 }),
+    desc: 'Cuerpo pequeño en la parte baja con sombra superior larga. Aparece tras una tendencia alcista.',
+    how: 'Los compradores empujaron el precio arriba, pero los vendedores tomaron control y cerraron el precio cerca del mínimo del período.',
+    trade: 'Confirmá con vela bajista siguiente. Entrada bajo el mínimo de la estrella. Stop-loss sobre el máximo. Ratio mínimo 1:2.'
+  },
+  {
+    id: 'doji', name: 'Doji', signal: 'neutral', class: 'neutral-c',
+    svg: buildDoji(1),
+    svgLarge: buildDoji(1.9),
+    desc: 'Precio de apertura y cierre son iguales o casi iguales. Las sombras pueden ser largas o cortas.',
+    how: 'Refleja indecisión entre compradores y vendedores. Ni alcistas ni bajistas controlan el precio. La señal depende del contexto anterior.',
+    trade: 'No operar en el doji. Esperá la siguiente vela para definir dirección. Un doji tras tendencia prolongada puede indicar reversión.'
+  },
+  {
+    id: 'engulf_bull', name: 'Envolvente Alcista', signal: 'bull', class: 'bull-c',
+    svg: buildEngulf('bull', 1),
+    svgLarge: buildEngulf('bull', 1.8),
+    desc: 'Dos velas: una vela bajista pequeña seguida de una vela alcista que envuelve completamente a la anterior.',
+    how: 'Los compradores superaron completamente a los vendedores de la sesión anterior. Señal de reversión alcista fuerte, especialmente en soporte.',
+    trade: 'Entrá sobre el cierre de la vela envolvente. Stop-loss bajo el mínimo de ambas velas. Objetivo al próximo nivel de resistencia.'
+  },
+  {
+    id: 'engulf_bear', name: 'Envolvente Bajista', signal: 'bear', class: 'bear-c',
+    svg: buildEngulf('bear', 1),
+    svgLarge: buildEngulf('bear', 1.8),
+    desc: 'Vela alcista pequeña seguida de vela bajista que la engloba por completo. Aparece en resistencias.',
+    how: 'Los vendedores superaron a los compradores por completo. Señal de reversión bajista fuerte, especialmente tras impulso al alza.',
+    trade: 'Entrá bajo el cierre de la vela envolvente. Stop-loss sobre el máximo de ambas velas. Confirmación recomendada.'
+  },
+  {
+    id: 'morning_star', name: 'Estrella de la Mañana', signal: 'bull', class: 'bull-c',
+    svg: buildThreeCandles('morning', 1),
+    svgLarge: buildThreeCandles('morning', 1.7),
+    desc: 'Patrón de 3 velas: bajista grande, vela pequeña (estrella) con gap, y alcista grande que recupera más del 50% de la primera.',
+    how: 'La estrella central muestra indecisión. La tercera vela confirma que los compradores tomaron el control. Reversión alcista de alta fiabilidad.',
+    trade: 'Entrada al cierre de la tercera vela. Stop bajo el mínimo de la estrella central. Muy confiable en soporte fuerte.'
+  },
+  {
+    id: 'evening_star', name: 'Estrella Vespertina', signal: 'bear', class: 'bear-c',
+    svg: buildThreeCandles('evening', 1),
+    svgLarge: buildThreeCandles('evening', 1.7),
+    desc: 'Patrón de 3 velas: alcista grande, estrella con gap, y bajista grande. Señal de techo de mercado.',
+    how: 'La estrella indica que los compradores pierden fuerza. La tercera vela bajista confirma la toma de control de los vendedores.',
+    trade: 'Entrada al cierre de la tercera vela bajista. Stop sobre el máximo de la estrella. Muy efectiva en resistencia.'
+  },
+  {
+    id: 'spinning_top', name: 'Spinning Top', signal: 'neutral', class: 'neutral-c',
+    svg: buildCandle({ bodyTop:22, bodyBot:32, wickTop:14, wickBot:40, color:'#c8b97a', scale:1 }),
+    svgLarge: buildCandle({ bodyTop:22, bodyBot:40, wickTop:10, wickBot:60, color:'#c8b97a', scale:1.8 }),
+    desc: 'Cuerpo pequeño centrado con sombras largas en ambos extremos. Alta volatilidad pero sin dirección clara.',
+    how: 'Compradores y vendedores lucharon sin que nadie ganara. El mercado está en equilibrio. Alta incertidumbre intradiaria.',
+    trade: 'Evitá operar hasta que aparezca una vela de confirmación. Puede preceder un movimiento fuerte en cualquier dirección.'
+  },
+  {
+    id: 'marubozu_bull', name: 'Marubozu Alcista', signal: 'bull', class: 'bull-c',
+    svg: buildMarubozu('bull', 1),
+    svgLarge: buildMarubozu('bull', 1.8),
+    desc: 'Vela alcista sin sombras (o mínimas). El precio abrió en el mínimo y cerró en el máximo del período.',
+    how: 'Control absoluto de los compradores durante toda la sesión. Sin resistencia vendedora. Señal de momentum alcista muy fuerte.',
+    trade: 'Puede entrar en la dirección de la vela. Cuidado: puede haber corrección breve. Mejor confirmar en retroceso a la apertura.'
+  },
+  {
+    id: 'marubozu_bear', name: 'Marubozu Bajista', signal: 'bear', class: 'bear-c',
+    svg: buildMarubozu('bear', 1),
+    svgLarge: buildMarubozu('bear', 1.8),
+    desc: 'Vela bajista sin sombras. El precio abrió en el máximo y cerró en el mínimo.',
+    how: 'Los vendedores dominaron la sesión completamente sin ninguna reacción compradora. Señal de momentum bajista muy fuerte.',
+    trade: 'Momentum claro a la baja. Buscá entrada en rebote o continuación. No ir contra esta vela sin señal clara de reversión.'
+  },
+  {
+    id: 'harami_bull', name: 'Harami Alcista', signal: 'bull', class: 'bull-c',
+    svg: buildHarami('bull', 1),
+    svgLarge: buildHarami('bull', 1.8),
+    desc: 'Vela bajista grande seguida de una vela alcista pequeña contenida dentro del cuerpo de la primera.',
+    how: '"Harami" significa embarazada en japonés. La vela pequeña indica que la presión bajista está disminuyendo. Señal de posible reversión.',
+    trade: 'Confirmá con vela alcista siguiente. Más fiable cerca de soportes clave o medias móviles importantes.'
+  },
+  {
+    id: 'harami_bear', name: 'Harami Bajista', signal: 'bear', class: 'bear-c',
+    svg: buildHarami('bear', 1),
+    svgLarge: buildHarami('bear', 1.8),
+    desc: 'Vela alcista grande seguida de vela bajista pequeña dentro de su cuerpo. Señal de debilitamiento alcista.',
+    how: 'La vela pequeña muestra que los compradores perdieron fuerza. Si aparece en resistencia, la probabilidad de reversión aumenta.',
+    trade: 'Esperá confirmación bajista. Efectivo en combinación con RSI en sobrecompra o resistencia de precio relevante.'
+  }
+];
+
+// ── SVG BUILDER FUNCTIONS ──
+function buildCandle({ bodyTop, bodyBot, wickTop, wickBot, color, scale }) {
+  const w = 44 * scale, h = 56 * scale;
+  const bw = 14 * scale;
+  const cx = w / 2;
+  const scY = v => v * h / 56;
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <line x1="${cx}" y1="${scY(wickTop)}" x2="${cx}" y2="${scY(bodyTop)}" stroke="${color}" stroke-width="${1.5*scale}"/>
+    <rect x="${cx-bw/2}" y="${scY(bodyTop)}" width="${bw}" height="${scY(bodyBot-bodyTop)}" fill="${color}" rx="${1*scale}"/>
+    <line x1="${cx}" y1="${scY(bodyBot)}" x2="${cx}" y2="${scY(wickBot)}" stroke="${color}" stroke-width="${1.5*scale}"/>
+  </svg>`;
+}
+
+function buildDoji(scale) {
+  const w=44*scale, h=56*scale, cx=w/2, bw=14*scale;
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <line x1="${cx}" y1="${6*scale}" x2="${cx}" y2="${25*scale}" stroke="#c8b97a" stroke-width="${1.5*scale}"/>
+    <line x1="${cx-bw/2}" y1="${25*scale}" x2="${cx+bw/2}" y2="${25*scale}" stroke="#c8b97a" stroke-width="${2*scale}"/>
+    <line x1="${cx}" y1="${25*scale}" x2="${cx}" y2="${48*scale}" stroke="#c8b97a" stroke-width="${1.5*scale}"/>
+  </svg>`;
+}
+
+function buildEngulf(dir, scale) {
+  const w=52*scale, h=56*scale;
+  if (dir==='bull') {
+    return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <rect x="${24*scale}" y="${18*scale}" width="${12*scale}" height="${14*scale}" fill="#f87171" rx="${scale}"/>
+      <rect x="${14*scale}" y="${10*scale}" width="${14*scale}" height="${26*scale}" fill="#4ade80" rx="${scale}"/>
+      <line x1="${21*scale}" y1="${6*scale}" x2="${21*scale}" y2="${10*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+      <line x1="${21*scale}" y1="${36*scale}" x2="${21*scale}" y2="${46*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    </svg>`;
+  }
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect x="${24*scale}" y="${18*scale}" width="${12*scale}" height="${14*scale}" fill="#4ade80" rx="${scale}"/>
+    <rect x="${14*scale}" y="${10*scale}" width="${14*scale}" height="${28*scale}" fill="#f87171" rx="${scale}"/>
+    <line x1="${21*scale}" y1="${4*scale}" x2="${21*scale}" y2="${10*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+    <line x1="${21*scale}" y1="${38*scale}" x2="${21*scale}" y2="${50*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+  </svg>`;
+}
+
+function buildThreeCandles(type, scale) {
+  const w=60*scale, h=56*scale;
+  if (type==='morning') {
+    return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <line x1="${10*scale}" y1="${8*scale}" x2="${10*scale}" y2="${12*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+      <rect x="${4*scale}" y="${12*scale}" width="${12*scale}" height="${22*scale}" fill="#f87171" rx="${scale}"/>
+      <line x1="${10*scale}" y1="${34*scale}" x2="${10*scale}" y2="${38*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+      <rect x="${24*scale}" y="${28*scale}" width="${10*scale}" height="${8*scale}" fill="#c8b97a" rx="${scale}"/>
+      <rect x="${40*scale}" y="${14*scale}" width="${14*scale}" height="${22*scale}" fill="#4ade80" rx="${scale}"/>
+      <line x1="${47*scale}" y1="${10*scale}" x2="${47*scale}" y2="${14*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+      <line x1="${47*scale}" y1="${36*scale}" x2="${47*scale}" y2="${42*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    </svg>`;
+  }
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <line x1="${10*scale}" y1="${8*scale}" x2="${10*scale}" y2="${12*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    <rect x="${4*scale}" y="${12*scale}" width="${12*scale}" height="${20*scale}" fill="#4ade80" rx="${scale}"/>
+    <line x1="${10*scale}" y1="${32*scale}" x2="${10*scale}" y2="${38*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    <rect x="${24*scale}" y="${20*scale}" width="${10*scale}" height="${8*scale}" fill="#c8b97a" rx="${scale}"/>
+    <rect x="${40*scale}" y="${18*scale}" width="${14*scale}" height="${22*scale}" fill="#f87171" rx="${scale}"/>
+    <line x1="${47*scale}" y1="${12*scale}" x2="${47*scale}" y2="${18*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+    <line x1="${47*scale}" y1="${40*scale}" x2="${47*scale}" y2="${46*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+  </svg>`;
+}
+
+function buildMarubozu(dir, scale) {
+  const w=44*scale, h=56*scale, cx=w/2, bw=14*scale;
+  const color = dir==='bull' ? '#4ade80' : '#f87171';
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect x="${cx-bw/2}" y="${10*scale}" width="${bw}" height="${36*scale}" fill="${color}" rx="${scale}"/>
+  </svg>`;
+}
+
+function buildHarami(dir, scale) {
+  const w=52*scale, h=56*scale;
+  if (dir==='bull') {
+    return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <line x1="${16*scale}" y1="${6*scale}" x2="${16*scale}" y2="${10*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+      <rect x="${8*scale}" y="${10*scale}" width="${14*scale}" height="${28*scale}" fill="#f87171" rx="${scale}"/>
+      <line x1="${16*scale}" y1="${38*scale}" x2="${16*scale}" y2="${44*scale}" stroke="#f87171" stroke-width="${1.5*scale}"/>
+      <rect x="${28*scale}" y="${20*scale}" width="${12*scale}" height="${14*scale}" fill="#4ade80" rx="${scale}"/>
+    </svg>`;
+  }
+  return `<svg class="cndl" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <line x1="${16*scale}" y1="${6*scale}" x2="${16*scale}" y2="${10*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    <rect x="${8*scale}" y="${10*scale}" width="${14*scale}" height="${28*scale}" fill="#4ade80" rx="${scale}"/>
+    <line x1="${16*scale}" y1="${38*scale}" x2="${16*scale}" y2="${44*scale}" stroke="#4ade80" stroke-width="${1.5*scale}"/>
+    <rect x="${28*scale}" y="${20*scale}" width="${12*scale}" height="${14*scale}" fill="#f87171" rx="${scale}"/>
+  </svg>`;
+}
+
+// ── RENDER GRID ──
+let currentFilter = 'all';
+
+function renderGrid(filter) {
+  currentFilter = filter;
+  const grid = document.getElementById('candleGrid');
+  grid.innerHTML = CANDLES
+    .filter(c => filter === 'all' || c.signal === filter)
+    .map(c => `
+      <div class="candle-card ${c.class}" onclick="openModal('${c.id}')">
+        <div class="candle-visual">${c.svg}</div>
+        <div class="candle-name">${c.name}</div>
+        <div class="candle-signal ${c.signal}">${c.signal === 'bull' ? '↑ alcista' : c.signal === 'bear' ? '↓ bajista' : '→ indecisión'}</div>
+      </div>
+    `).join('');
+}
+
+function filterCandles(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active-f'));
+  btn.classList.add('active-f');
+  renderGrid(f);
+}
+
+renderGrid('all');
+
+// ── MODAL ──
+function openModal(id) {
+  const c = CANDLES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('modalTitle').textContent = c.name;
+  const badge = document.getElementById('modalBadge');
+  badge.className = 'modal-badge ' + c.signal;
+  badge.textContent = c.signal === 'bull' ? '↑ Alcista' : c.signal === 'bear' ? '↓ Bajista' : '→ Indecisión';
+  document.getElementById('modalVisual').innerHTML = c.svgLarge;
+  document.getElementById('modalDesc').textContent = c.desc;
+  document.getElementById('modalHow').textContent  = c.how;
+  document.getElementById('modalTrade').textContent = c.trade;
+  document.getElementById('candleModal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('candleModal')) {
+    document.getElementById('candleModal').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ══════════════════════════════════════════════
+// TICKER EN VIVO — precio + cambio % del día (Bybit, gratis)
+// ══════════════════════════════════════════════
+async function refreshTicker() {
+  try {
+    const sym = document.getElementById('symbolSel').value;
+    const r = await fetch(`https://api.bybit.com/v5/market/tickers?category=spot&symbol=${sym}`);
+    const j = await r.json();
+    if (j.retCode !== 0 || !j.result.list.length) return;
+    const t = j.result.list[0];
+    const price = parseFloat(t.lastPrice);
+    const chgPct = (parseFloat(t.price24hPcnt) * 100);
+
+    const elP = document.getElementById('ltPrice');
+    const elC = document.getElementById('ltChange');
+
+    // precio con separador de miles
+    elP.textContent = '$' + price.toLocaleString('es-AR', { maximumFractionDigits: price < 1 ? 5 : 2 });
+
+    // color según suba o baje respecto al tick anterior
+    if (lastPrice !== null) {
+      elP.classList.remove('lt-up','lt-down','lt-flash');
+      void elP.offsetWidth; // reinicia animación
+      elP.classList.add(price >= lastPrice ? 'lt-up' : 'lt-down', 'lt-flash');
+    }
+    lastPrice = price;
+
+    // cambio % del día
+    const up = chgPct >= 0;
+    elC.textContent = (up ? '▲ +' : '▼ ') + chgPct.toFixed(2) + '%';
+    elC.className = 'lt-change ' + (up ? 'lt-up' : 'lt-down');
+  } catch(e) { /* silencioso, reintenta al próximo ciclo */ }
+}
+refreshTicker();
+setInterval(refreshTicker, 2500);
+
+// ══════════════════════════════════════════════
+// RELOJ DE CIERRE DE VELA + ALARMA
+// ══════════════════════════════════════════════
+let alarmOn = false;
+let alarmFiredFor = null;   // evita que suene mil veces en el mismo cierre
+let audioCtx = null;
+
+// minutos que dura cada vela según el tf elegido
+const tfMinutes = { '1':1,'3':3,'5':5,'15':15,'30':30,'60':60,'240':240,'D':1440 };
+
+function toggleAlarm() {
+  alarmOn = !alarmOn;
+  const b = document.getElementById('ctAlarm');
+  b.textContent = alarmOn ? '🔔' : '🔕';
+  b.classList.toggle('on', alarmOn);
+  // desbloquea el audio del navegador con el primer click
+  if (alarmOn) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch(e){}
+  }
+}
+
+function beep() {
+  if (!audioCtx) return;
+  // tres pitidos cortos
+  for (let i = 0; i < 3; i++) {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.value = 880;
+    const t = audioCtx.currentTime + i * 0.25;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    o.start(t); o.stop(t + 0.2);
+  }
+}
+
+function updateCandleTimer() {
+  const tf = document.getElementById('tfSel').value;
+  const mins = tfMinutes[tf];
+  const el = document.getElementById('ctTime');
+  if (!mins) { el.textContent = '--:--'; return; }
+
+  const periodMs = mins * 60 * 1000;
+  const now = Date.now();
+  // las velas se alinean al tiempo UTC; el cierre es el próximo múltiplo del período
+  const elapsed = now % periodMs;
+  let remaining = Math.ceil((periodMs - elapsed) / 1000); // segundos que faltan
+
+  const h = Math.floor(remaining / 3600);
+  const m = Math.floor((remaining % 3600) / 60);
+  const s = remaining % 60;
+  el.textContent = h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  // últimos 10 segundos: parpadea en rojo
+  el.classList.toggle('ct-warn', remaining <= 10);
+
+  // alarma exacta a los 10s (suena una sola vez por vela)
+  const candleId = Math.floor(now / periodMs);
+  if (alarmOn && remaining <= 10 && remaining > 9 && alarmFiredFor !== candleId) {
+    alarmFiredFor = candleId;
+    beep();
+  }
+}
+updateCandleTimer();
+setInterval(updateCandleTimer, 1000);
+</script>
+</body>
+</html>

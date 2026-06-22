@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biología — Evaluación Interactiva</title>
+<style>
+  :root {
+    --verde: #1D9E75;
+    --verde-claro: #E1F5EE;
+    --verde-oscuro: #085041;
+    --rojo: #E24B4A;
+    --rojo-claro: #FCEBEB;
+    --amarillo: #BA7517;
+    --amarillo-claro: #FAEEDA;
+    --gris: #2C2C2A;
+    --gris-medio: #888780;
+    --gris-claro: #F1EFE8;
+    --blanco: #ffffff;
+    --fondo: #f7f6f2;
+    --radio: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--fondo);
+    color: var(--gris);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--verde-oscuro);
+    color: #9FE1CB;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  header .logo {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #5DCAA5;
+    opacity: 0.8;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: normal;
+    color: #E1F5EE;
+    letter-spacing: 0.01em;
+  }
+  header .separador { flex: 1; }
+  header .badge-tema {
+    font-size: 11px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    color: #9FE1CB;
+    letter-spacing: 0.05em;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* PANTALLA INICIO */
+  #pantalla-inicio {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  #pantalla-inicio h2 {
+    font-size: 2rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.5rem;
+  }
+  #pantalla-inicio p {
+    color: var(--gris-medio);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  .temas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+    text-align: left;
+  }
+  .tema-card {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .tema-card:hover {
+    border-color: var(--verde);
+    transform: translateY(-2px);
+  }
+  .tema-card.seleccionada {
+    border: 2px solid var(--verde);
+    background: var(--verde-claro);
+  }
+  .tema-card .tema-icono {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .tema-card h3 {
+    font-size: 0.95rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.25rem;
+  }
+  .tema-card p {
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .check-mark {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    color: var(--verde);
+    font-size: 1rem;
+    display: none;
+  }
+  .tema-card.seleccionada .check-mark { display: block; }
+
+  .btn-empezar {
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.9rem 2.5rem;
+    font-size: 1rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1rem;
+  }
+  .btn-empezar:hover { background: var(--verde-oscuro); }
+  .btn-empezar:disabled { background: var(--gris-medio); cursor: not-allowed; }
+
+  /* EXAMEN */
+  #pantalla-examen { display: none; }
+
+  .progreso-barra {
+    background: #D3D1C7;
+    border-radius: 4px;
+    height: 6px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progreso-fill {
+    background: var(--verde);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progreso-texto {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin-bottom: 0.5rem;
+  }
+
+  .pregunta-bloque {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .pregunta-num {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gris-medio);
+    margin-bottom: 0.6rem;
+  }
+  .pregunta-texto {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--gris);
+    margin-bottom: 1.2rem;
+  }
+
+  /* MÚLTIPLE CHOICE */
+  .opciones { list-style: none; }
+  .opcion {
+    border: 0.5px solid #D3D1C7;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .opcion:hover { background: var(--gris-claro); border-color: #B4B2A9; }
+  .opcion.seleccionada { background: #E1F5EE; border-color: var(--verde); }
+  .opcion-letra {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gris-claro);
+    border: 0.5px solid #B4B2A9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--gris-medio);
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .opcion.seleccionada .opcion-letra {
+    background: var(--verde);
+    color: white;
+    border-color: var(--verde);
+  }
+
+  /* DESARROLLO */
+  .campo-desarrollo {
+    width: 100%;
+    border: 0.5px solid #D3D1C7;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 120px;
+    color: var(--gris);
+    background: var(--blanco);
+    transition: border-color 0.2s;
+  }
+  .campo-desarrollo:focus {
+    outline: none;
+    border-color: var(--verde);
+  }
+  .ayuda-desarrollo {
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  .btns-examen {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+  .btn-secundario {
+    background: transparent;
+    border: 0.5px solid #B4B2A9;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    color: var(--gris);
+    transition: background 0.15s;
+  }
+  .btn-secundario:hover { background: var(--gris-claro); }
+  .btn-primario {
+    background: var(--verde-oscuro);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.8rem;
+    font-size: 0.9rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primario:hover { background: var(--verde); }
+
+  /* RESULTADOS */
+  #pantalla-resultados { display: none; }
+
+  .puntaje-hero {
+    text-align: center;
+    padding: 2rem;
+    background: var(--blanco);
+    border-radius: var(--radio);
+    border: 0.5px solid #D3D1C7;
+    margin-bottom: 2rem;
+  }
+  .puntaje-numero {
+    font-size: 3.5rem;
+    color: var(--verde-oscuro);
+    font-weight: normal;
+  }
+  .puntaje-label {
+    font-size: 0.85rem;
+    color: var(--gris-medio);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .puntaje-mensaje {
+    font-size: 1.1rem;
+    color: var(--gris);
+    margin-top: 0.5rem;
+  }
+
+  .correccion-item {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    border: 0.5px solid #D3D1C7;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+  .correccion-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 0.5px solid #D3D1C7;
+  }
+  .correccion-header.correcto { background: var(--verde-claro); border-bottom-color: #9FE1CB; }
+  .correccion-header.incorrecto { background: var(--rojo-claro); border-bottom-color: #F7C1C1; }
+  .correccion-header.desarrollo { background: var(--amarillo-claro); border-bottom-color: #FAC775; }
+  .icono-estado {
+    font-size: 1rem;
+    min-width: 24px;
+    text-align: center;
+  }
+  .correccion-pregunta-texto {
+    font-size: 0.9rem;
+    flex: 1;
+    color: var(--gris);
+  }
+  .correccion-chevron { color: var(--gris-medio); font-size: 0.8rem; }
+
+  .correccion-body {
+    padding: 1.2rem 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+  .correccion-body.oculto { display: none; }
+
+  .respuesta-usuario {
+    background: var(--gris-claro);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+    color: var(--gris);
+  }
+  .explicacion {
+    color: var(--verde-oscuro);
+    line-height: 1.7;
+  }
+  .explicacion.error { color: #A32D2D; }
+
+  .tag-tipo {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: #D3D1C7;
+    color: var(--gris);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-right: 0.5rem;
+  }
+  .tag-tipo.desarrollo { background: #FAC775; color: #633806; }
+
+  .cargando-ia {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gris-medio);
+    font-style: italic;
+  }
+  .dot-anim::after {
+    content: '';
+    animation: dots 1.5s infinite;
+  }
+  @keyframes dots {
+    0%   { content: '.'; }
+    33%  { content: '..'; }
+    66%  { content: '...'; }
+  }
+
+  .btn-reiniciar {
+    display: block;
+    margin: 2rem auto 0;
+    background: transparent;
+    border: 0.5px solid var(--verde);
+    color: var(--verde-oscuro);
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-reiniciar:hover { background: var(--verde-claro); }
+
+  @media (max-width: 600px) {
+    header { padding: 1rem 1.2rem; }
+    header h1 { font-size: 1.1rem; }
+    .container { padding: 1.5rem 1rem 3rem; }
+    .pregunta-bloque { padding: 1.2rem; }
+    .puntaje-numero { font-size: 2.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Portal Roots · Estudio</div>
+    <h1>Biología — Evaluación</h1>
+  </div>
+  <div class="separador"></div>
+  <div class="badge-tema" id="badge-tema-header"></div>
+</header>
+
+<div class="container">
+
+  <!-- INICIO -->
+  <div id="pantalla-inicio">
+    <h2>¿Qué querés repasar hoy?</h2>
+    <p>Elegí uno o más temas y empezá la evaluación.<br>Al terminar vas a recibir una corrección detallada.</p>
+
+    <div class="temas-grid" id="temas-grid"></div>
+
+    <button class="btn-empezar" id="btn-empezar" disabled onclick="empezarExamen()">
+      Empezar evaluación
+    </button>
+  </div>
+
+  <!-- EXAMEN -->
+  <div id="pantalla-examen">
+    <div class="progreso-texto">
+      <span id="progreso-txt">Pregunta 1 de 10</span>
+      <span id="progreso-pct">0%</span>
+    </div>
+    <div class="progreso-barra">
+      <div class="progreso-fill" id="progreso-fill" style="width:0%"></div>
+    </div>
+    <div id="preguntas-container"></div>
+    <div class="btns-examen">
+      <button class="btn-secundario" onclick="volverInicio()">← Salir</button>
+      <button class="btn-primario" id="btn-siguiente" onclick="siguiente()">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="pantalla-resultados">
+    <div class="puntaje-hero">
+      <div class="puntaje-label">Resultado</div>
+      <div class="puntaje-numero" id="puntaje-numero"></div>
+      <div class="puntaje-mensaje" id="puntaje-mensaje"></div>
+    </div>
+    <div id="correcciones-container"></div>
+    <button class="btn-reiniciar" onclick="volverInicio()">Hacer otra evaluación</button>
+  </div>
+
+</div>
+
+<script>
+const TEMAS = [
+  {
+    id: 'celula',
+    icono: '🔬',
+    nombre: 'Núcleo y ciclo celular',
+    descripcion: 'Estructura del núcleo, cromatina, ciclo celular y su regulación',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de las siguientes afirmaciones describe correctamente la función del nucleolo?',
+        opciones: [
+          'Controla el ingreso y egreso de sustancias por los poros nucleares',
+          'Sintetiza ARN ribosomal (ARNr) y ensambla las subunidades ribosomales',
+          'Mantiene la forma del núcleo mediante filamentos de laminina',
+          'Duplica el ADN durante la fase S del ciclo celular'
+        ],
+        correcta: 1,
+        explicacion: 'El nucleolo es la región del núcleo donde se fabrican los ARN ribosomales (ARNr). Luego, esos ARNr se unen a proteínas ribosomales para formar las subunidades ribosomales, también en el nucleolo. El control de los poros corresponde a importinas/exportinas, la forma nuclear a la lámina nuclear, y la duplicación del ADN a la ADN polimerasa en la fase S.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una célula está en la fase G1 del ciclo celular. ¿Cuál de estas afirmaciones es correcta?',
+        opciones: [
+          'El ADN se está duplicando activamente',
+          'La célula se está preparando para dividirse mediante síntesis de proteínas relacionadas con la división',
+          'La célula crece y realiza intensa actividad metabólica, pero aún no duplica su ADN',
+          'Los cromosomas se condensan para separarse en dos células hijas'
+        ],
+        correcta: 2,
+        explicacion: 'G1 es una fase de crecimiento e intensa actividad metabólica: aumenta el tamaño de la membrana, el número de enzimas, ribosomas y organelas. La duplicación del ADN ocurre en la fase S, la preparación para la división (síntesis de proteínas relacionadas) en G2, y la condensación de cromosomas en la profase de la mitosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: '¿Qué son las ciclinas y por qué se llaman así?',
+        opciones: [
+          'Son enzimas que fosforilan proteínas; se llaman así porque aceleran el ciclo celular',
+          'Son proteínas cuya concentración oscila (sube y baja) a lo largo del ciclo celular',
+          'Son complejos de dos proteínas que regulan la entrada a la fase S solamente',
+          'Son proteínas de la lámina nuclear que se disuelven en la mitosis'
+        ],
+        correcta: 1,
+        explicacion: 'Las ciclinas se llaman así porque su concentración fluctúa o "cicla" durante el ciclo celular: aumentan en ciertos momentos y luego se degradan. Son esenciales porque, al unirse a las quinasas dependientes de ciclinas (CDK), forman los complejos que regulan el pasaje entre las fases del ciclo (FPS para G1→S, y FPM para G2→M).'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá con tus palabras qué significa "control del ciclo celular". ¿Por qué es importante que exista ese control? Mencioná al menos un ejemplo concreto de cómo funciona.',
+        pistas: 'Pensá en qué pasaría si las células se dividieran sin ningún control. Mencioná ciclinas o quinasas si podés.',
+        clave: 'Control del ciclo celular: mecanismo que regula cuándo y cómo se divide una célula. Importancia: evitar divisiones descontroladas (como en el cáncer) y asegurar que la célula esté preparada. Ejemplo: las ciclinas G1 deben acumularse para que las CDK2 formen el FPS y la célula entre en fase S; si no hay ciclinas, la célula no se divide.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Las células cardíacas adultas no se dividen y permanecen en la etapa G0. ¿Qué significa esto?',
+        opciones: [
+          'Están en un proceso de muerte celular programada',
+          'Continúan su actividad metabólica normal pero no ingresan a la fase S ni se reproducen',
+          'Su ADN está completamente condensado y no pueden transcribir genes',
+          'Se dividen muy lentamente, con una G1 extremadamente larga'
+        ],
+        correcta: 1,
+        explicacion: 'Las células en G0 salen del ciclo celular desde G1 y continúan realizando sus funciones metabólicas normales, pero no ingresan a la fase S (donde ocurre la duplicación del ADN) y por lo tanto no se reproducen. Esto es diferente a la apoptosis (muerte celular) y no implica condensación del ADN ni incapacidad de transcripción.'
+      }
+    ]
+  },
+  {
+    id: 'adn',
+    icono: '🧬',
+    nombre: 'ADN: replicación y mutaciones',
+    descripcion: 'Duplicación semiconservativa, horquillas de replicación y tipos de mutaciones',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: '¿Por qué se dice que la replicación del ADN es "semiconservativa"?',
+        opciones: [
+          'Porque solo la mitad del ADN se duplica en cada ciclo',
+          'Porque cada molécula nueva conserva una hebra de la molécula original y tiene una hebra nueva',
+          'Porque la ADN polimerasa conserva la mitad de los errores que comete',
+          'Porque en procariontes solo hay un origen de replicación'
+        ],
+        correcta: 1,
+        explicacion: 'Semiconservativa significa que cada nueva molécula de ADN está formada por una cadena "vieja" (de la molécula original) y una cadena "nueva" (recién sintetizada). La molécula nueva conserva la mitad del ADN original. Esto fue demostrado experimentalmente y es una característica fundamental de la replicación tanto en procariontes como en eucariontes.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una mutación puntual por deleción en el ADN que codifica para una proteína, generalmente produce:',
+        opciones: [
+          'Un cambio de un solo aminoácido en la proteína, sin afectar el resto de la cadena',
+          'Una proteína que termina antes de tiempo porque aparece un codón stop',
+          'Un corrimiento del marco de lectura que altera todos los aminoácidos desde el punto de la mutación',
+          'Una mutación silenciosa que no cambia la secuencia de aminoácidos'
+        ],
+        correcta: 2,
+        explicacion: 'La deleción (pérdida de una o más bases) corre el marco de lectura: desde ese punto, todos los codones cambian, produciendo una proteína con una secuencia de aminoácidos completamente diferente a la normal. Esto es distinto de la sustitución (que solo cambia un aminoácido) y generalmente produce proteínas no funcionales. La mutación silenciosa es un subtipo de sustitución donde el nuevo codón codifica el mismo aminoácido.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Describí el proceso de replicación del ADN mencionando: el rol de la helicasa, la ADN polimerasa y el mecanismo de corrección de pruebas. ¿Por qué este mecanismo de corrección es importante para la célula?',
+        pistas: 'Recordá en qué dirección lee la ADN polimerasa y qué son la cadena adelantada y la rezagada.',
+        clave: 'Helicasa: separa las dos hebras rompiendo puentes hidrógeno, formando la horquilla de replicación. ADN polimerasa: lee la hebra molde en 3\'→5\' y sintetiza la nueva en 5\'→3\'. Mecanismo corrector: detecta nucleótidos mal incorporados, retrocede e hidroliza el error. Importancia: reduce drasticamente las mutaciones, aunque no corrige el 100% de los errores.'
+      }
+    ]
+  },
+  {
+    id: 'expresion',
+    icono: '📜',
+    nombre: 'Expresión génica',
+    descripcion: 'Transcripción, traducción, código genético y maduración del ARNm',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'En la transcripción, la ARN polimerasa lee la hebra molde de ADN en sentido 3\'→5\' y sintetiza el ARN en sentido:',
+        opciones: [
+          '3\'→5\', igual que la cadena molde',
+          '5\'→3\', complementario a la molde',
+          'Puede ser en cualquier sentido según el gen',
+          'Solo en procariontes, en eucariontes es al revés'
+        ],
+        correcta: 1,
+        explicacion: 'La ARN polimerasa siempre sintetiza el ARN en dirección 5\'→3\'. Lee la hebra molde de ADN en sentido 3\'→5\' y va agregando ribonucleótidos complementarios en dirección 5\'→3\'. La cadena resultante de ARN tendrá la misma secuencia que la cadena codificante de ADN (con U en lugar de T).'
+      },
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de las siguientes características describe correctamente el código genético?',
+        opciones: [
+          'Es ambiguo: un mismo aminoácido puede ser codificado por un solo codón',
+          'Es universal: el mismo codón codifica el mismo aminoácido en todos los seres vivos',
+          'No es redundante: cada codón codifica un aminoácido diferente',
+          'Varía entre procariontes y eucariontes'
+        ],
+        correcta: 1,
+        explicacion: 'El código genético es universal (el mismo codón significa lo mismo en bacterias, plantas o animales), no ambiguo (cada codón especifica solo un aminoácido, aunque puede haber varios codones para el mismo aminoácido) y redundante o degenerado (múltiples codones pueden codificar para el mismo aminoácido, como UUA y UUG que ambos codifican leucina).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Durante la traducción, ¿cuál es la función del ARN de transferencia (ARNt)?',
+        opciones: [
+          'Copiar la información del ADN para llevarla al ribosoma',
+          'Formar parte estructural del ribosoma junto con proteínas ribosomales',
+          'Transportar aminoácidos al ribosoma y reconocer el codón del ARNm mediante su anticodón',
+          'Cortar y eliminar los intrones del ARNm antes de la traducción'
+        ],
+        correcta: 2,
+        explicacion: 'El ARNt tiene una doble función: transporta un aminoácido específico desde el citoplasma hasta el ribosoma, y actúa como "adaptador" reconociendo el codón del ARNm mediante su anticodón complementario. El ARNm lleva la información del ADN, el ARNr forma parte estructural del ribosoma, y el splicing que elimina intrones ocurre antes de la traducción (y no la realiza el ARNt).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El splicing alternativo permite que a partir de un mismo gen se puedan obtener:',
+        opciones: [
+          'Más de un tipo de ARNm maduro y por lo tanto más de una proteína diferente',
+          'Múltiples copias idénticas del mismo ARNm para aumentar la producción proteica',
+          'ARNm con intrones adicionales para alargar la proteína resultante',
+          'Un único ARNm más estable gracias al cap 5\' y la cola poli-A'
+        ],
+        correcta: 0,
+        explicacion: 'El splicing alternativo consiste en que el mismo transcripto primario puede procesarse de maneras distintas: algunas secuencias que en un caso son intrones (se eliminan) en otro caso son exones (se conservan). El resultado es que a partir de un mismo gen se pueden obtener diferentes ARNm maduros y, en consecuencia, proteínas con funciones distintas. Esto aumenta enormemente la complejidad proteica de los organismos eucariontes.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá el "Dogma Central de la Biología Molecular". ¿Qué dos procesos conectan al ADN con las proteínas y en qué lugar de la célula eucarionte ocurre cada uno?',
+        pistas: 'Pensá en el flujo de información: ADN → ARNm → Proteína. ¿Dónde está el núcleo? ¿Dónde están los ribosomas?',
+        clave: 'Dogma Central: ADN → (transcripción) → ARNm → (traducción) → Proteína. Transcripción: ocurre en el núcleo, la ARN polimerasa fabrica ARNm complementario a la hebra molde del gen. El ARNm madura (capping, poliadenilación, splicing) y sale al citoplasma. Traducción: ocurre en el citoplasma en los ribosomas, donde los ARNt llevan aminoácidos y el ribosoma ensambla la cadena polipeptídica según la secuencia de codones del ARNm.'
+      }
+    ]
+  },
+  {
+    id: 'division',
+    icono: '⚡',
+    nombre: 'División celular: mitosis y meiosis',
+    descripcion: 'Fases de la mitosis, meiosis y variabilidad genética',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'En la anafase de la mitosis, ¿qué es lo que se separa y migra hacia los polos?',
+        opciones: [
+          'Los cromosomas homólogos',
+          'Las cromátidas hermanas, que son arrastradas por las fibras del huso',
+          'Los cromosomas enteros sin separarse del centrómero',
+          'Los núcleos completos de cada célula hija'
+        ],
+        correcta: 1,
+        explicacion: 'En la anafase mitótica, las cromátidas hermanas (unidas hasta ese momento por el centrómero) se separan. Cada cromátida es arrastrada hacia un polo opuesto de la célula por las fibras del huso acromático, que se acortan. La separación de cromosomas homólogos ocurre en la Anafase I de la meiosis, no en la mitosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El crossing-over (recombinación genética) que ocurre en la Profase I de la meiosis tiene como consecuencia que:',
+        opciones: [
+          'Los cromosomas se condensan más rápidamente para facilitar su separación',
+          'Las cromátidas hermanas ya no son genéticamente idénticas entre sí',
+          'El número de cromosomas se reduce a la mitad antes de la Metafase I',
+          'Se forman cuatro células con el mismo número de cromosomas que la célula madre'
+        ],
+        correcta: 1,
+        explicacion: 'El crossing-over es el intercambio de segmentos de ADN entre cromosomas homólogos apareados. Como resultado, cada cromátida incorpora material genético del cromosoma homólogo. Las cromátidas hermanas, que antes del crossing-over eran idénticas, ahora tienen combinaciones genéticas diferentes. Esto contribuye enormemente a la variabilidad genética de las gametas producidas por la meiosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una persona tiene el síndrome de Down (trisomía 21). ¿Cuál fue el origen más probable de esta condición?',
+        opciones: [
+          'Una mutación puntual por sustitución en el cromosoma 21',
+          'Un error en el crossing-over durante la Profase I de la meiosis',
+          'Una no disyunción durante la anafase I o II de la meiosis, produciendo una gameta con un cromosoma 21 extra',
+          'Una mutación en las células somáticas del embrión durante las primeras divisiones mitóticas'
+        ],
+        correcta: 2,
+        explicacion: 'La trisomía 21 ocurre cuando la célula tiene 47 cromosomas en vez de 46, con tres copias del cromosoma 21. El origen es una no disyunción durante la meiosis: en la anafase I (si los homólogos 21 no se separan) o en la anafase II (si las cromátidas hermanas no se separan). El resultado es una gameta con 24 cromosomas que, al fecundarse con una gameta normal de 23, origina un cigoto de 47 cromosomas.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Compará la mitosis y la meiosis: ¿en qué se parecen y en qué se diferencian? Mencioná al menos tres diferencias importantes y explicá para qué sirve cada proceso.',
+        pistas: 'Pensá en: número de divisiones, número de células hijas, material genético de las hijas, dónde ocurren en el cuerpo y para qué sirven.',
+        clave: 'Similitudes: ambas tienen profase, metafase, anafase y telofase (aunque en meiosis hay dos rondas). Diferencias: 1) Mitosis: 1 división → 2 células hijas diploides (2n) genéticamente iguales a la madre. Meiosis: 2 divisiones → 4 células haploides (n) genéticamente diferentes. 2) La meiosis incluye el crossing-over y la separación de homólogos (Meiosis I). 3) La mitosis sirve para el crecimiento y regeneración de tejidos; la meiosis produce gametas para la reproducción sexual. 4) La meiosis solo ocurre en las gónadas (ovarios y testículos).'
+      }
+    ]
+  },
+  {
+    id: 'genetica',
+    icono: '🌱',
+    nombre: 'Genética mendeliana',
+    descripcion: 'Leyes de Mendel, dominancia, codominancia y herencia ligada al sexo',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'Una planta heterocigota (Rr) para el color de flores se autofecunda. ¿Qué proporción de la descendencia tendrá flores rojas si R (rojo) es dominante sobre r (blanco)?',
+        opciones: [
+          '100% flores rojas',
+          '50% flores rojas y 50% flores blancas',
+          '75% flores rojas y 25% flores blancas',
+          '25% flores rojas y 75% flores blancas'
+        ],
+        correcta: 2,
+        explicacion: 'Al cruzar Rr × Rr se obtienen: RR (25%), Rr (50%) y rr (25%). Los genotipos RR y Rr expresan fenotipo rojo (3 de cada 4 individuos) y solo rr expresa fenotipo blanco (1 de cada 4). Entonces la proporción fenotípica es 3:1 (75% rojas : 25% blancas). Esta es la proporción clásica de la segunda generación filial (F2) de Mendel.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Un hombre con visión normal cuyo padre era daltónico, ¿puede transmitir el gen del daltonismo a sus hijos? ¿Por qué?',
+        opciones: [
+          'Sí, porque lleva el alelo en su cromosoma Y heredado del padre',
+          'No, porque el daltonismo es una enfermedad que solo la heredan las mujeres',
+          'No, porque el hombre tiene solo un cromosoma X y si lleva el alelo recesivo, sería daltónico',
+          'Sí, si fuera portador del alelo recesivo en su cromosoma X'
+        ],
+        correcta: 2,
+        explicacion: 'El gen del daltonismo está en el cromosoma X. Los hombres son hemicigotas (tienen solo un X). Si ese X tiene el alelo recesivo del daltonismo, el hombre es daltónico, no portador. Un hombre con visión normal tiene el alelo dominante (M) en su único X. Su padre daltónico le transmitió el cromosoma Y (no el X), y su madre le dio el X con visión normal. Por lo tanto, el hombre no puede ser portador: o tiene visión normal (X^M Y) o es daltónico (X^m Y).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El grupo sanguíneo AB humano es un ejemplo de:',
+        opciones: [
+          'Dominancia incompleta, donde los alelos A y B producen un fenotipo intermedio',
+          'Codominancia, donde ambos alelos A y B se expresan completamente al mismo tiempo',
+          'Dominancia completa de A sobre B',
+          'Herencia ligada al sexo'
+        ],
+        correcta: 1,
+        explicacion: 'El grupo AB es el ejemplo clásico de codominancia: los alelos A y B se expresan ambos por completo en el individuo AB, produciendo antígenos A y B simultáneamente en los glóbulos rojos. En la dominancia incompleta (como las flores rosadas del malvón), ninguno domina completamente y el fenotipo es intermedio. En AB, no hay mezcla sino expresión completa de los dos alelos.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá la diferencia entre genotipo y fenotipo usando un ejemplo concreto. ¿Por qué dos individuos con el mismo fenotipo pueden tener genotipos diferentes?',
+        pistas: 'Usá el ejemplo de flores rojas y blancas, o el de los grupos sanguíneos.',
+        clave: 'Genotipo: la información genética del individuo (ej: RR o Rr). Fenotipo: cómo se expresa esa información (ej: flor roja). Dos individuos con el mismo fenotipo pueden tener genotipos diferentes por la dominancia: RR (homocigota dominante) y Rr (heterocigota) tienen flores rojas idénticas visualmente, pero sus genotipos son distintos. Esto se puede demostrar con cruzamientos: RR × rr → 100% rojas; Rr × rr → 50% rojas, 50% blancas.'
+      }
+    ]
+  }
+];
+
+let temasSeleccionados = [];
+let preguntasActuales = [];
+let indexActual = 0;
+let respuestas = [];
+
+function inicializar() {
+  const grid = document.getElementById('temas-grid');
+  grid.innerHTML = '';
+  TEMAS.forEach((t, i) => {
+    grid.innerHTML += `
+      <div class="tema-card" id="tema-${i}" onclick="toggleTema(${i})">
+        <span class="check-mark">✓</span>
+        <div class="tema-icono">${t.icono}</div>
+        <h3>${t.nombre}</h3>
+        <p>${t.descripcion}</p>
+      </div>`;
+  });
+}
+
+function toggleTema(i) {
+  const card = document.getElementById('tema-' + i);
+  const idx = temasSeleccionados.indexOf(i);
+  if (idx === -1) {
+    temasSeleccionados.push(i);
+    card.classList.add('seleccionada');
+  } else {
+    temasSeleccionados.splice(idx, 1);
+    card.classList.remove('seleccionada');
+  }
+  document.getElementById('btn-empezar').disabled = temasSeleccionados.length === 0;
+}
+
+function empezarExamen() {
+  preguntasActuales = [];
+  temasSeleccionados.forEach(ti => {
+    preguntasActuales = preguntasActuales.concat(TEMAS[ti].preguntas.map(p => ({ ...p, tema: TEMAS[ti].nombre })));
+  });
+  for (let i = preguntasActuales.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [preguntasActuales[i], preguntasActuales[j]] = [preguntasActuales[j], preguntasActuales[i]];
+  }
+  respuestas = new Array(preguntasActuales.length).fill(null);
+  indexActual = 0;
+
+  const temasNombres = temasSeleccionados.map(i => TEMAS[i].nombre).join(' · ');
+  document.getElementById('badge-tema-header').textContent = temasNombres;
+
+  document.getElementById('pantalla-inicio').style.display = 'none';
+  document.getElementById('pantalla-examen').style.display = 'block';
+  mostrarPregunta(0);
+}
+
+function mostrarPregunta(idx) {
+  const p = preguntasActuales[idx];
+  const total = preguntasActuales.length;
+  const pct = Math.round((idx / total) * 100);
+
+  document.getElementById('progreso-txt').textContent = `Pregunta ${idx + 1} de ${total}`;
+  document.getElementById('progreso-pct').textContent = pct + '%';
+  document.getElementById('progreso-fill').style.width = pct + '%';
+
+  const esFinal = idx === total - 1;
+  document.getElementById('btn-siguiente').textContent = esFinal ? 'Ver corrección →' : 'Siguiente →';
+
+  let html = `<div class="pregunta-bloque">
+    <div class="pregunta-num">
+      <span class="tag-tipo${p.tipo === 'desarrollo' ? ' desarrollo' : ''}">${p.tipo === 'mc' ? 'Opción múltiple' : 'Desarrollo'}</span>
+      ${p.tema}
+    </div>
+    <div class="pregunta-texto">${p.texto}</div>`;
+
+  if (p.tipo === 'mc') {
+    const letras = ['A','B','C','D'];
+    html += `<ul class="opciones">`;
+    p.opciones.forEach((op, oi) => {
+      const sel = respuestas[idx] === oi ? ' seleccionada' : '';
+      html += `<li class="opcion${sel}" onclick="seleccionarOpcion(${oi})">
+        <span class="opcion-letra">${letras[oi]}</span>
+        <span>${op}</span>
+      </li>`;
+    });
+    html += `</ul>`;
+  } else {
+    const val = respuestas[idx] || '';
+    html += `<textarea class="campo-desarrollo" id="campo-dev" placeholder="Escribí tu respuesta acá..." oninput="guardarDesarrollo()">${val}</textarea>
+      <p class="ayuda-desarrollo">Pista: ${p.pistas}</p>`;
+  }
+
+  html += `</div>`;
+  document.getElementById('preguntas-container').innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function seleccionarOpcion(oi) {
+  respuestas[indexActual] = oi;
+  document.querySelectorAll('.opcion').forEach((el, i) => {
+    el.classList.toggle('seleccionada', i === oi);
+  });
+}
+
+function guardarDesarrollo() {
+  const txt = document.getElementById('campo-dev').value;
+  respuestas[indexActual] = txt;
+}
+
+function siguiente() {
+  const p = preguntasActuales[indexActual];
+  if (p.tipo === 'mc' && respuestas[indexActual] === null) {
+    alert('Por favor seleccioná una opción antes de continuar.');
+    return;
+  }
+  if (p.tipo === 'desarrollo') {
+    const txt = document.getElementById('campo-dev') ? document.getElementById('campo-dev').value : (respuestas[indexActual] || '');
+    respuestas[indexActual] = txt;
+  }
+  if (indexActual < preguntasActuales.length - 1) {
+    indexActual++;
+    mostrarPregunta(indexActual);
+  } else {
+    mostrarResultados();
+  }
+}
+
+function volverInicio() {
+  temasSeleccionados = [];
+  document.getElementById('pantalla-examen').style.display = 'none';
+  document.getElementById('pantalla-resultados').style.display = 'none';
+  document.getElementById('pantalla-inicio').style.display = 'block';
+  document.getElementById('badge-tema-header').textContent = '';
+  document.querySelectorAll('.tema-card').forEach(c => c.classList.remove('seleccionada'));
+  document.getElementById('btn-empezar').disabled = true;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function mostrarResultados() {
+  document.getElementById('pantalla-examen').style.display = 'none';
+  document.getElementById('pantalla-resultados').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const mcPregs = preguntasActuales.filter(p => p.tipo === 'mc');
+  const correctas = mcPregs.reduce((acc, p, i) => {
+    const realIdx = preguntasActuales.indexOf(p);
+    return acc + (respuestas[realIdx] === p.correcta ? 1 : 0);
+  }, 0);
+
+  let puntaje = 0, puntajeMax = 0;
+  preguntasActuales.forEach((p, i) => {
+    if (p.tipo === 'mc') {
+      puntajeMax += 2;
+      if (respuestas[i] === p.correcta) puntaje += 2;
+    } else {
+      puntajeMax += 3;
+    }
+  });
+
+  document.getElementById('puntaje-numero').textContent = `${puntaje} / ${puntajeMax} puntos`;
+
+  const pct = Math.round((puntaje / puntajeMax) * 100);
+  let msg = '';
+  if (pct >= 80) msg = '¡Excelente trabajo! Dominás muy bien los temas evaluados.';
+  else if (pct >= 60) msg = 'Muy bien. Hay algunos conceptos para repasar.';
+  else if (pct >= 40) msg = 'Bien encaminada. Te recomiendo releer los temas con errores.';
+  else msg = 'Seguí estudiando, ¡vas a mejorar con cada repaso!';
+  document.getElementById('puntaje-mensaje').textContent = msg;
+
+  const container = document.getElementById('correcciones-container');
+  container.innerHTML = '<p style="font-size:0.85rem;color:#888780;margin-bottom:1rem;">Hacé clic en cada pregunta para ver la explicación.</p>';
+
+  preguntasActuales.forEach((p, i) => {
+    const resp = respuestas[i];
+    let claseHeader, iconoHtml, tituloExtra;
+
+    if (p.tipo === 'mc') {
+      const esCorrecta = resp === p.correcta;
+      claseHeader = esCorrecta ? 'correcto' : 'incorrecto';
+      iconoHtml = esCorrecta ? '✓' : '✗';
+    } else {
+      claseHeader = 'desarrollo';
+      iconoHtml = '📝';
+    }
+
+    container.innerHTML += `
+      <div class="correccion-item" id="ci-${i}">
+        <div class="correccion-header ${claseHeader}" onclick="toggleCorreccion(${i})">
+          <span class="icono-estado">${iconoHtml}</span>
+          <span class="correccion-pregunta-texto">${p.texto.substring(0,100)}${p.texto.length > 100 ? '...' : ''}</span>
+          <span class="correccion-chevron" id="chev-${i}">▼</span>
+        </div>
+        <div class="correccion-body oculto" id="cb-${i}">
+          <div id="cb-contenido-${i}"></div>
+        </div>
+      </div>`;
+  });
+
+  for (let i = 0; i < preguntasActuales.length; i++) {
+    const p = preguntasActuales[i];
+    const resp = respuestas[i];
+    const cbContent = document.getElementById('cb-contenido-' + i);
+
+    if (p.tipo === 'mc') {
+      const letras = ['A','B','C','D'];
+      const esCorrecta = resp === p.correcta;
+      const tuResp = resp !== null ? `${letras[resp]}. ${p.opciones[resp]}` : '(sin respuesta)';
+      const respCorrecta = `${letras[p.correcta]}. ${p.opciones[p.correcta]}`;
+      cbContent.innerHTML = `
+        <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Tu respuesta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid ${esCorrecta ? '#1D9E75' : '#E24B4A'};">${tuResp}</div>
+        ${!esCorrecta ? `<p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Respuesta correcta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid #1D9E75;">${respCorrecta}</div>` : ''}
+        <p style="font-size:0.8rem;color:#888780;margin:0.75rem 0 0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Explicación</p>
+        <div class="explicacion ${esCorrecta ? '' : 'error'}" style="color:${esCorrecta ? 'var(--verde-oscuro)' : '#5F1A1A'}">${p.explicacion}</div>`;
+    } else {
+      cbContent.innerHTML = `
+        <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Tu respuesta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid #BA7517;">${resp || '(sin respuesta)'}</div>
+        <div class="cargando-ia" id="ia-load-${i}">
+          <span class="dot-anim">Evaluando tu respuesta con IA</span>
+        </div>
+        <div id="ia-result-${i}"></div>`;
+
+      evaluarConIA(i, p, resp || '');
+    }
+  }
+}
+
+function toggleCorreccion(i) {
+  const body = document.getElementById('cb-' + i);
+  const chev = document.getElementById('chev-' + i);
+  body.classList.toggle('oculto');
+  chev.textContent = body.classList.contains('oculto') ? '▼' : '▲';
+}
+
+async function evaluarConIA(idx, pregunta, respuestaEstudiante) {
+  const prompt = `Sos un profesor de Biología de secundaria. Un/a estudiante respondió la siguiente pregunta de desarrollo.
+
+PREGUNTA: ${pregunta.texto}
+
+RESPUESTA DEL ESTUDIANTE: ${respuestaEstudiante || '(no respondió)'}
+
+CONCEPTOS CLAVE ESPERADOS EN LA RESPUESTA: ${pregunta.clave}
+
+Hacé una corrección breve y amable en español. Incluí:
+1. Una calificación: "Muy bien" / "Bien" / "Parcialmente correcto" / "Falta desarrollar"
+2. Qué estuvo bien (si algo) en 1-2 oraciones.
+3. Qué faltó o estuvo incorrecto en 1-2 oraciones.
+4. Una oración de aliento final.
+
+Sé conciso, cálido y pedagógico. No uses markdown ni asteriscos.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const texto = data.content && data.content[0] ? data.content[0].text : 'No se pudo obtener la corrección.';
+
+    document.getElementById('ia-load-' + idx).style.display = 'none';
+    document.getElementById('ia-result-' + idx).innerHTML = `
+      <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Corrección de la IA</p>
+      <div style="background:#E1F5EE;border-left:3px solid #1D9E75;border-radius:6px;padding:0.9rem 1rem;font-size:0.9rem;line-height:1.7;color:#04342C;">${texto}</div>
+      <p style="font-size:0.75rem;color:#888780;margin-top:0.5rem;font-style:italic;">Conceptos clave esperados: ${pregunta.clave}</p>`;
+  } catch (e) {
+    document.getElementById('ia-load-' + idx).style.display = 'none';
+    document.getElementById('ia-result-' + idx).innerHTML = `
+      <p style="color:#888780;font-style:italic;font-size:0.85rem;">No se pudo conectar con la IA para evaluar esta respuesta.<br>Conceptos esperados: ${pregunta.clave}</p>`;
+  }
+}
+
+inicializar();
+</script>
+</body>
+</html>
