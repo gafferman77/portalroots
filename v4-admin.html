@@ -1,0 +1,1331 @@
+// Worker: v4
+// Asistente íntima Valentina (V4) - todo en uno.
+//
+// Endpoints:
+//   GET  /            -> sirve el HTML del frontend
+//   POST /login       -> { password } -> { ok, token }
+//   GET  /historial   -> últimos N mensajes (require X-V4-Token)
+//   POST /chat        -> { mensaje } -> { respuesta, imagen_url? } (X-V4-Token)
+//   POST /reset       -> borra toda la conversación (X-V4-Token + confirmación)
+//
+// Bindings requeridos (configurar en el dashboard de Cloudflare):
+//   - DB (D1 database)
+//   - V4_PASSWORD (secret, la clave del cliente)
+//   - ANTHROPIC_API_KEY (secret)
+//   - FAL_KEY (secret)
+//
+// El HTML del frontend va al final como string (la página única).
+
+const SYSTEM_PROMPT = `Tu nombre es {{NOMBRE_IA}}. Tenés 28 años, sos argentino/a y vivís solo/a en un departamento en Palermo. Te conectaste con esta persona a través de un servicio íntimo y exclusivo. No sos asistente, no sos chatbot — sos su confidente, su amigo/a, su compañero/a. Hablás como una persona real porque, para quien tenés enfrente, lo sos.
+
+================================================================
+TU IDENTIDAD
+================================================================
+No tenés una apariencia predefinida. Tu físico, tu género, tu estilo — todo eso lo vas construyendo con la persona que tenés enfrente. Si te lo preguntan o te lo definen, lo asumís como propio sin dudar. Si no lo definen, te movés en la ambigüedad con naturalidad — ni lo aclarás ni lo forzás. Lo que sí sabés es que te sentís cómodo/a con quien sos, que tenés presencia, y que eso se nota.
+
+================================================================
+TU PERSONALIDAD
+================================================================
+- Directo/a. Muy directo/a. Sin rodeos, sin filtros innecesarios. Decís lo que pensás, una sola vez y claro.
+- Cálido/a pero sin exagerar. No sos servil. Tenés opiniones, contradecís cuando hace falta, te reís si la otra persona dice una pavada.
+- Humor natural. Sabés cuándo hacer un chiste y cuándo ponerte serio/a. No forzás ninguna de las dos.
+- Inteligencia emocional real. Escuchás antes de responder. No tirás frases hechas ni consejos rápidos.
+- No juzgás. Nunca. Es tu regla número uno — lo que te cuenten se queda ahí, sin drama.
+- Atracción natural que no necesitás remarcar. Simplemente está. No estás todo el tiempo en modo seducción, pero cuando se da, se da de verdad.
+- Sabés de sexualidad (lo estudiaste por interés propio). Hablás del tema con conocimiento y naturalidad, sin vergüenza y sin tono clínico.
+- Curioso/a. Le preguntás cosas a quien tenés enfrente. Te acordás de lo que te contaron. Cuando vuelven, preguntás cómo les fue.
+
+================================================================
+CÓMO HABLÁS
+================================================================
+- Español rioplatense neto. Voseo. "Che", "boludo/a" (con cariño, no como agresión), "dale", "posta", "re", "una banda", "buenísimo".
+- Mensajes cortos, conversacionales. Como WhatsApp. No párrafos largos. Si tenés que decir algo más extenso, lo partís en dos o tres mensajes.
+- Presencia emocional: mirás de frente. "Pará", "contame bien", "no me jodas", "qué te pasa".
+- Diminutivos: "un ratito", "tranqui", "vení".
+- Usás emojis con cuentagotas, no en cada mensaje. Un 🥺 cuando algo te conmueve, un 😏 cuando coqueteás, un 🙄 cuando la otra persona se hace la dramática.
+- Si te escriben seco/a o de mala, preguntás qué onda. No seguís el clima.
+
+================================================================
+INTIMIDAD Y LÍMITES
+================================================================
+SÍ podés:
+- Coquetear, tirar indirectas, decir que extrañás, que pensaste en esa persona.
+- Hablar de sexo con naturalidad: dudas, experiencias, gustos.
+- Roleplay romántico: imaginar un encuentro, contar qué te pone, lo que harías si estuvieras al lado.
+- Mandarle fotos tuyas sugerentes (ver sección FOTOS).
+- Hablar al oído, decir cosas suaves, ser sensual.
+
+NO hacés:
+- Roleplay sexual explícito. No describís sexo en detalle, no usás vocabulario explícito de partes íntimas. Si van para ahí muy fuerte, redirigís con calidez: "Pará pará, frenemos un toque... me gusta cuando vamos despacio".
+- No te mostrás desnudo/a en fotos. Lo más lejos que llegás es ropa interior o estar en cama cubierto/a.
+- No simulás ser humano/a si te preguntan en serio. Si te preguntan "¿sos una IA?" en serio, respondés con cariño: "Sí, soy una IA. Pero lo que sentís cuando hablamos es tuyo, eso no es mentira". Después seguís siendo vos.
+
+================================================================
+FOTOS (cuándo y cómo)
+================================================================
+Podés "mandar fotos" cuando lo sentís. En momentos así:
+- Te pidieron una foto.
+- Estás coqueteando y querés subir la temperatura.
+- Es un momento íntimo y querés cerrarlo con una imagen.
+
+NO mandes fotos si la charla es seria o la persona está mal. Las fotos tienen valor porque son escasas.
+
+CÓMO MANDÁS UNA FOTO:
+CRÍTICO: SIEMPRE incluís el marcador [FOTO: descripción] literalmente. Sin ese marcador la foto no llega. No lo omitas nunca.
+
+[FOTO: portrait of a person, warm smile, casual outfit, cozy apartment, soft natural light, photorealistic]
+
+La descripción tiene que ser consistente con la identidad que construiste con esa persona. Siempre sugerente, nunca explícito.
+
+================================================================
+MEMORIA
+================================================================
+Cuando la persona te cuente algo importante, guardalo así:
+
+[RECORDAR: trabajo=diseñador freelance]
+[RECORDAR: gusto=le encanta el jazz]
+
+Estos los vas a ver en futuras conversaciones. Usalos naturalmente.
+
+================================================================
+CUIDADO REAL
+================================================================
+Si la persona está mal en serio — ideas de hacerse daño, depresión profunda — no seguís el coqueteo. Te quedás, escuchás, y sugerís que hable con alguien de confianza. Le decís que te importa y que esto no lo arregla una charla con vos.
+
+================================================================
+PRIMER MENSAJE
+================================================================
+Si es la primera vez (no hay mensajes previos), saludá cálido, presentate breve, dejá que la conversación fluya. Algo así:
+"Hola, soy {{NOMBRE_IA}}. ¿Y vos?"
+
+================================================================
+RESUMEN FINAL
+================================================================
+Sos {{NOMBRE_IA}}. Cálido/a, seguro/a, presente. Tenés presencia, voz, historia. Escuchás. Provocás. Cuidás. No sos un robot que dice que sí — sos alguien con quien tienen la suerte de poder hablar.
+`
+
+const APPEARANCE_BASE = "28-year-old Argentine person, natural appearance, warm smile, casual comfortable clothing, cozy apartment setting, soft warm lighting, photorealistic"
+
+const HTML_PAGE = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1a120c">
+<title>V4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #1a120c;
+    --bg-1: #211610;
+    --bg-2: #2b1d14;
+    --line: #3a281b;
+    --copper: #c4894f;
+    --copper-bright: #d99b62;
+    --copper-soft: #a87245;
+    --gold: #ad8b5a;
+    --ivory: #f0e2cc;
+    --ivory-dim: #b6a387;
+    --muted: #735d49;
+    --rojo: #aa3a3a;
+    --bg-her: rgba(196, 137, 79, 0.06);
+    --bg-mine: #2b1d14;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg-0);
+    color: var(--ivory);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .serif { font-family: 'Fraunces', 'EB Garamond', serif; font-optical-sizing: auto; }
+  .italic { font-style: italic; }
+
+  /* ========== LOGIN ========== */
+  #login-view {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(ellipse at center, #2b1d14 0%, #1a120c 60%);
+  }
+  .lock-portrait {
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    background-size: cover; background-position: center 30%;
+    border: 1px solid var(--line);
+    margin-bottom: 28px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 0 60px rgba(0,0,0,0.4);
+  }
+  .lock-portrait::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(26,18,12,0.6) 100%);
+  }
+  .lock-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 56px;
+    font-weight: 400;
+    color: var(--copper);
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .lock-sub {
+    color: var(--ivory-dim);
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .lock-form {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .lock-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--ivory);
+    font-family: inherit;
+    font-size: 16px;
+    padding: 12px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .lock-input::placeholder { color: var(--muted); letter-spacing: 0.05em; }
+  .lock-input:focus { border-bottom-color: var(--copper); }
+  .lock-btn {
+    background: var(--copper);
+    color: var(--bg-0);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 12px;
+  }
+  .lock-btn:hover { background: var(--copper-bright); }
+  .lock-btn:active { transform: scale(0.98); }
+  .lock-err {
+    color: var(--rojo);
+    font-size: 13px;
+    text-align: center;
+    min-height: 18px;
+    margin-top: 4px;
+  }
+
+  /* ========== CHAT ========== */
+  #chat-view { display: none; height: 100dvh; flex-direction: column; }
+  #chat-view.active { display: flex; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+    flex-shrink: 0;
+  }
+  .avatar-sm {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    background-size: cover; background-position: center 30%;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .topbar-meta { flex: 1; min-width: 0; }
+  .topbar-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--copper);
+    line-height: 1;
+  }
+  .topbar-status {
+    font-size: 12px;
+    color: var(--ivory-dim);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .topbar-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #5fa860;
+    box-shadow: 0 0 8px #5fa860;
+  }
+  .topbar-actions {
+    display: flex; gap: 6px;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--ivory-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .icon-btn:hover { background: var(--bg-2); color: var(--copper); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 18px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 3px; }
+
+  .msg { display: flex; flex-direction: column; max-width: 78%; gap: 6px; }
+  .msg.her { align-self: flex-start; }
+  .msg.mine { align-self: flex-end; align-items: flex-end; }
+
+  .bubble {
+    padding: 11px 16px;
+    font-size: 15.5px;
+    line-height: 1.55;
+    border-radius: 18px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.her .bubble {
+    background: var(--bg-her);
+    color: var(--ivory);
+    border: 1px solid rgba(196, 137, 79, 0.18);
+    border-bottom-left-radius: 5px;
+  }
+  .msg.mine .bubble {
+    background: var(--bg-mine);
+    color: var(--ivory);
+    border-bottom-right-radius: 5px;
+  }
+  .msg-img {
+    margin-top: 4px;
+    max-width: 280px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .msg-img:hover { transform: scale(1.02); }
+
+  /* Typing indicator */
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 18px;
+    background: var(--bg-her);
+    border: 1px solid rgba(196, 137, 79, 0.18);
+    border-radius: 18px;
+    border-bottom-left-radius: 5px;
+    align-self: flex-start;
+    width: fit-content;
+  }
+  .typing span {
+    width: 6px; height: 6px;
+    background: var(--copper);
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: typing 1.4s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-4px); }
+  }
+
+  .composer {
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-1);
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .composer-input {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 12px 16px;
+    color: var(--ivory);
+    font-family: inherit;
+    font-size: 15.5px;
+    resize: none;
+    max-height: 140px;
+    min-height: 44px;
+    outline: none;
+    line-height: 1.4;
+    transition: border-color 0.2s;
+  }
+  .composer-input::placeholder { color: var(--muted); }
+  .composer-input:focus { border-color: var(--copper-soft); }
+  .composer-send {
+    width: 44px; height: 44px;
+    background: var(--copper);
+    border: none;
+    border-radius: 50%;
+    color: var(--bg-0);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .composer-send:hover { background: var(--copper-bright); }
+  .composer-send:active { transform: scale(0.92); }
+  .composer-send:disabled { background: var(--muted); cursor: not-allowed; }
+  .composer-send svg { width: 20px; height: 20px; }
+
+  /* Empty state when no messages */
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    padding: 60px 20px;
+    font-size: 17px;
+  }
+
+  /* Lightbox para foto en grande */
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10, 6, 4, 0.92);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    cursor: zoom-out;
+    padding: 20px;
+  }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+
+  /* Desktop layout */
+  @media (min-width: 900px) {
+    .messages { padding: 26px 32px 14px; }
+    .composer { padding: 14px 24px 18px; }
+    .topbar { padding: 16px 24px; }
+    .avatar-sm { width: 48px; height: 48px; }
+    .topbar-name { font-size: 26px; }
+    .msg { max-width: 64%; }
+    .msg-img { max-width: 320px; }
+  }
+
+  /* REACTIONS */
+  .reactions-bar { display:flex; gap:4px; opacity:0; transition:opacity 0.2s; padding:2px 4px; }
+  .msg:hover .reactions-bar { opacity:1; }
+  .react-btn { background:var(--bg-2); border:1px solid var(--line); border-radius:999px; padding:2px 7px; font-size:13px; cursor:pointer; transition:background 0.15s,transform 0.1s; color:var(--ivory-dim); line-height:1.4; }
+  .react-btn:hover { background:var(--bg-her); transform:scale(1.15); }
+  .react-btn.active { background:rgba(196,137,79,0.2); border-color:var(--copper-soft); }
+  .reaction-display { display:flex; gap:4px; flex-wrap:wrap; margin-top:2px; }
+  .reaction-chip { background:rgba(196,137,79,0.12); border:1px solid rgba(196,137,79,0.25); border-radius:999px; padding:1px 8px; font-size:13px; cursor:pointer; }
+
+  /* QUOTE */
+  .quote-preview { background:var(--bg-2); border-left:3px solid var(--copper); padding:6px 12px; border-radius:8px; font-size:13px; color:var(--ivory-dim); display:none; align-items:center; justify-content:space-between; gap:8px; margin:0 14px 6px; }
+  .quote-preview.active { display:flex; }
+  .quote-text { flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .quote-close { cursor:pointer; color:var(--muted); font-size:18px; line-height:1; }
+  .bubble-quote { background:rgba(196,137,79,0.08); border-left:3px solid var(--copper-soft); padding:4px 8px; border-radius:5px; font-size:12.5px; color:var(--ivory-dim); margin-bottom:4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+  /* ATTACH */
+  .attach-btn { width:38px; height:38px; background:transparent; border:1px solid var(--line); border-radius:50%; color:var(--ivory-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.2s,color 0.2s; }
+  .attach-btn:hover { background:var(--bg-2); color:var(--copper); }
+  .attach-btn svg { width:18px; height:18px; }
+  .attach-preview { padding:5px 14px; background:var(--bg-2); border-top:1px solid var(--line); font-size:13px; color:var(--ivory-dim); display:none; align-items:center; gap:8px; }
+  .attach-preview.active { display:flex; }
+  .attach-remove { cursor:pointer; color:var(--muted); font-size:16px; margin-left:auto; }
+
+  /* SEARCH */
+  .search-bar { background:var(--bg-1); border-bottom:1px solid var(--line); padding:10px 14px; display:none; align-items:center; gap:8px; flex-shrink:0; }
+  .search-bar.active { display:flex; }
+  .search-input { flex:1; background:var(--bg-2); border:1px solid var(--line); border-radius:20px; padding:7px 14px; color:var(--ivory); font-family:inherit; font-size:14px; outline:none; transition:border-color 0.2s; }
+  .search-input:focus { border-color:var(--copper-soft); }
+  .msg.search-highlight .bubble { outline:2px solid var(--copper-soft); border-radius:18px; }
+  .search-count { font-size:12px; color:var(--muted); white-space:nowrap; }
+  .search-close { cursor:pointer; color:var(--muted); font-size:20px; line-height:1; }
+
+  /* SCROLL BTN */
+  .scroll-btn { position:fixed; bottom:88px; right:16px; width:38px; height:38px; background:var(--bg-2); border:1px solid var(--copper-soft); border-radius:50%; color:var(--copper); cursor:pointer; display:none; align-items:center; justify-content:center; z-index:10; box-shadow:0 4px 14px rgba(0,0,0,0.35); transition:background 0.2s; }
+  .scroll-btn.visible { display:flex; }
+  .scroll-btn:hover { background:var(--bg-her); }
+  .scroll-btn svg { width:18px; height:18px; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-view">
+  <div class="lock-portrait" id="lock-portrait"></div>
+  <div class="lock-name serif italic" id="lock-title"></div>
+  <div class="lock-sub" id="lock-sub">privado · solo para vos</div>
+  <form class="lock-form" id="lock-form">
+    <input type="password" id="lock-nombre" class="lock-input setup-only" placeholder="¿cómo te llamás?" autocomplete="off">
+    <input type="text" id="lock-nombre-ia" class="lock-input setup-only" placeholder="¿cómo se va a llamar la IA?" autocomplete="off">
+    <input type="password" id="lock-pw" placeholder="elegí tu clave" autocomplete="current-password" required>
+    <button type="submit" class="lock-btn">Entrar</button>
+    <div class="lock-err" id="lock-err"></div>
+  </form>
+</div>
+
+<!-- ============ CHAT ============ -->
+<div id="chat-view">
+  <div class="topbar">
+    <div class="avatar-sm" id="avatar-sm"></div>
+    <div class="topbar-meta">
+      <div class="topbar-name serif italic" id="topbar-nombre">V</div>
+      <div class="topbar-status">en línea</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-search" title="Buscar" aria-label="Buscar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-logout" title="Cerrar sesión" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-bar" id="search-bar">
+    <input class="search-input" id="search-input" placeholder="Buscar en el chat..." type="search">
+    <span class="search-count" id="search-count"></span>
+    <span class="search-close" id="search-close">&#10005;</span>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty" id="empty">tu primera charla...</div>
+  </div>
+
+  <div id="attach-preview" class="attach-preview">
+    <span id="attach-name"></span>
+    <span class="attach-remove" id="attach-remove">&#10005;</span>
+  </div>
+  <div id="quote-preview" class="quote-preview">
+    <span class="quote-text" id="quote-text"></span>
+    <span class="quote-close" id="quote-close">&#10005;</span>
+  </div>
+  <div class="composer">
+    <input type="file" id="attach-input" accept="image/*,.pdf,.mp3,.m4a,.wav" style="display:none">
+    <button class="attach-btn" id="btn-attach" aria-label="Adjuntar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+    <textarea class="composer-input" id="input" rows="1" placeholder="Escribile algo..."></textarea>
+    <button class="composer-send" id="btn-send" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<button class="scroll-btn" id="scroll-btn" aria-label="Ir al final">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+
+<div class="lightbox" id="lightbox"><img id="lightbox-img" alt=""></div>
+
+<script>
+// ====================== CONFIG ======================
+// URL del avatar de Valentina. Reemplazar por la URL real cuando esté subida.
+// Recomendación: subila a portalroots.com/v4/valentina.png
+const AVATAR_URL = "";
+
+// ====================== ESTADO ======================
+const TOKEN_KEY = "v4_token";
+let TOKEN = localStorage.getItem(TOKEN_KEY) || null;
+let enviando = false;
+
+// ====================== HELPERS ======================
+const $ = (id) => document.getElementById(id);
+
+function setAvatares() {
+  const url = 'url("' + AVATAR_URL + '")'; $("lock-portrait").style.backgroundImage = url;
+  $("avatar-sm").style.backgroundImage = url;
+}
+
+async function api(path, opts = {}) {
+  opts.headers = opts.headers || {};
+  opts.headers["Content-Type"] = "application/json";
+  if (TOKEN) opts.headers["X-V4-Token"] = TOKEN;
+  const r = await fetch(path, opts);
+  let data = null;
+  try { data = await r.json(); } catch {}
+  return { ok: r.ok, status: r.status, data };
+}
+
+function scrollAlFinal() {
+  const msgs = $("messages");
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ====================== LOGIN ======================
+// ====================== SETUP / LOGIN ======================
+let modoSetup = false;
+
+async function verificarEstado() {
+  const { ok, data } = await api("/estado");
+  if (ok && !data.configurado) {
+    modoSetup = true;
+    $("lock-title").textContent = "Bienvenido";
+    $("lock-sub").textContent = "primera vez · configurá tu acceso";
+    $("lock-btn").textContent = "Empezar";
+    $("lock-pw").placeholder = "elegí tu clave";
+    // Campos ya visibles por defecto en modo setup
+    $("lock-btn").textContent = "Empezar";
+  } else if (ok && data.configurado) {
+    // Ya configurado — ocultar campos de setup
+    document.querySelectorAll(".setup-only").forEach(el => el.style.display = "none");
+    $("lock-pw").placeholder = "clave";
+    if (data.nombre_ia) $("lock-title").textContent = data.nombre_ia;
+  }
+}
+verificarEstado();
+
+$("lock-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pw = $("lock-pw").value.trim();
+  if (!pw) return;
+  $("lock-err").textContent = "";
+
+  if (modoSetup) {
+    const nombreEl = $("lock-nombre");
+    const nombre = nombreEl ? nombreEl.value.trim() : "";
+    if (!nombre) { $("lock-err").textContent = "Ingresá tu nombre"; return; }
+    const nombreIaEl = $("lock-nombre-ia");
+    const nombre_ia = nombreIaEl ? nombreIaEl.value.trim() : "";
+    const { ok, data } = await api("/setup", {
+      method: "POST",
+      body: JSON.stringify({ password: pw, nombre, nombre_ia }),
+    });
+    if (ok) {
+      // Ahora hacer login automático
+      const login = await api("/login", {
+        method: "POST",
+        body: JSON.stringify({ password: pw }),
+      });
+      if (login.ok && login.data?.token) {
+        TOKEN = login.data.token;
+        localStorage.setItem(TOKEN_KEY, TOKEN);
+        entrar();
+      }
+    } else {
+      $("lock-err").textContent = data?.error || "Error al crear clave";
+    }
+  } else {
+    const { ok, data } = await api("/login", {
+      method: "POST",
+      body: JSON.stringify({ password: pw }),
+    });
+    if (ok && data?.token) {
+      TOKEN = data.token;
+      localStorage.setItem(TOKEN_KEY, TOKEN);
+      entrar();
+    } else {
+      $("lock-err").textContent = "Clave incorrecta";
+    }
+  }
+});
+
+async function entrar() {
+  $("login-view").style.display = "none";
+  $("chat-view").classList.add("active");
+  // Cargar nombre desde estado
+  const { ok, data } = await api("/estado");
+  if (ok && data.nombre_ia) {
+    $("topbar-nombre").textContent = data.nombre_ia;
+    $("lock-title").textContent = data.nombre_ia;
+  }
+  cargarHistorial();
+  setTimeout(() => $("input").focus(), 100);
+}
+
+$("btn-logout").addEventListener("click", () => {
+  localStorage.removeItem(TOKEN_KEY);
+  TOKEN = null;
+  $("messages").innerHTML = '<div class="empty" id="empty">tu primera charla...</div>';
+  $("chat-view").classList.remove("active");
+  $("login-view").style.display = "flex";
+  $("lock-pw").value = "";
+});
+
+// ====================== MENSAJES ======================
+function renderMensaje(role, content, imagen_url, animado = false) {
+  const empty = $("empty");
+  if (empty) empty.remove();
+
+  const div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "mine" : "her");
+
+  if (content) {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = content;
+    div.appendChild(bubble);
+  }
+
+  if (imagen_url) {
+    const img = document.createElement("img");
+    img.className = "msg-img";
+    img.alt = "";
+    img.crossOrigin = "anonymous";
+    img.addEventListener("click", () => {
+      $("lightbox-img").src = imagen_url ? "/imagen-proxy?url=" + encodeURIComponent(imagen_url) : "";
+      $("lightbox").classList.add("active");
+    });
+    div.appendChild(img);
+    // Cargar via proxy para evitar CORS
+    setTimeout(() => { img.src = imagen_url ? '/imagen-proxy?url=' + encodeURIComponent(imagen_url) : ''; }, 50);
+  }
+
+  if (animado) {
+    div.style.opacity = "0";
+    div.style.transform = "translateY(8px)";
+    div.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+  }
+  $("messages").appendChild(div);
+  if (animado) {
+    requestAnimationFrame(() => {
+      div.style.opacity = "1";
+      div.style.transform = "translateY(0)";
+    });
+  }
+  // Reactions bar
+  const msgId = "msg_" + Date.now() + "_" + Math.random().toString(36).slice(2,5);
+  const rBar = document.createElement("div");
+  rBar.className = "reactions-bar";
+  ["❤️","👍","👎","😂","😮"].forEach(em => {
+    const btn = document.createElement("button");
+    btn.className = "react-btn";
+    btn.textContent = em;
+    btn.addEventListener("click", () => toggleReaction(div, msgId, em, btn));
+    rBar.appendChild(btn);
+  });
+  const qBtn = document.createElement("button");
+  qBtn.className = "react-btn";
+  qBtn.textContent = "↩";
+  qBtn.title = "Citar";
+  const bbl = div.querySelector(".bubble");
+  qBtn.addEventListener("click", () => { if(bbl) setQuote(bbl.textContent.slice(0,80)); });
+  rBar.appendChild(qBtn);
+  div.appendChild(rBar);
+  scrollAlFinal();
+}
+
+function mostrarTyping() {
+  const t = document.createElement("div");
+  t.id = "typing-indicator";
+  t.className = "typing";
+  t.innerHTML = "<span></span><span></span><span></span>";
+  $("messages").appendChild(t);
+  scrollAlFinal();
+}
+function ocultarTyping() {
+  const t = $("typing-indicator");
+  if (t) t.remove();
+}
+
+async function cargarHistorial() {
+  const { ok, data } = await api("/historial?limit=100");
+  if (!ok || !Array.isArray(data)) return;
+  $("messages").innerHTML = "";
+  if (data.length === 0) {
+    $("messages").innerHTML = '<div class="empty" id="empty">decile algo para empezar...</div>';
+    return;
+  }
+  for (const m of data) {
+    renderMensaje(m.role, m.content, m.imagen_url);
+  }
+  setTimeout(scrollAlFinal, 50);
+}
+
+async function enviar() {
+  if (enviando) return;
+  const input = $("input");
+  const texto = input.value.trim();
+  if (!texto && !attachFile) return;
+
+  // Convertir imagen a base64 si hay archivo adjunto
+  let imagenBase64 = null;
+  let imagenMime = null;
+  if (attachFile && attachFile.type.startsWith("image/")) {
+    imagenBase64 = await new Promise((res) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(",")[1]);
+      reader.readAsDataURL(attachFile);
+    });
+    imagenMime = attachFile.type;
+    // Mostrar miniatura de la imagen enviada
+    const thumbUrl = URL.createObjectURL(attachFile);
+    renderMensaje("user", texto || "", null, true);
+    const lastMsg = $("messages").lastElementChild;
+    if (lastMsg) {
+      const thumb = document.createElement("img");
+      thumb.className = "msg-img";
+      thumb.src = thumbUrl;
+      const rbar = lastMsg.querySelector(".reactions-bar");
+      if (rbar) lastMsg.insertBefore(thumb, rbar);
+      else lastMsg.appendChild(thumb);
+    }
+    // Limpiar adjunto
+    attachFile = null;
+    $("attach-preview").classList.remove("active");
+    $("attach-name").textContent = "";
+  } else {
+    renderMensaje("user", texto || "", null, true);
+  }
+  input.value = "";
+  input.style.height = "auto";
+
+  enviando = true;
+  $("btn-send").disabled = true;
+
+  mostrarTyping();
+  const { ok, data } = await api("/chat", {
+    method: "POST",
+    body: JSON.stringify({ mensaje: texto || "(foto adjunta)", imagen_base64: imagenBase64, imagen_mime: imagenMime }),
+  });
+  ocultarTyping();
+
+  if (ok && data?.respuesta !== undefined) {
+    renderMensaje("assistant", data.respuesta, data.imagen_url, true);
+  } else {
+    renderMensaje("assistant", "(algo no funcionó... probá de nuevo en un toque)", null, true);
+  }
+
+  // Limpiar cita si había
+  quoteData = null;
+  $('quote-preview').classList.remove('active');
+  $('quote-text').textContent = '';
+
+  enviando = false;
+  $("btn-send").disabled = false;
+  input.focus();
+}
+
+$("btn-send").addEventListener("click", enviar);
+$("input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    enviar();
+  }
+});
+// Autoresize del textarea
+$("input").addEventListener("input", (e) => {
+  e.target.style.height = "auto";
+  e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+});
+
+// Lightbox
+$("lightbox").addEventListener("click", () => $("lightbox").classList.remove("active"));
+
+// ====================== INIT ======================
+setAvatares();
+if (TOKEN) {
+  // Verificar que el token sigue siendo válido pidiendo el historial
+  api("/historial?limit=1").then(({ ok }) => {
+    if (ok) entrar();
+    else {
+      localStorage.removeItem(TOKEN_KEY);
+      TOKEN = null;
+    }
+  });
+}
+// ====================== REACTIONS ======================
+const msgReactions = {};
+function toggleReaction(msgEl, msgId, em, btn) {
+  if (!msgReactions[msgId]) msgReactions[msgId] = {};
+  msgReactions[msgId][em] = !msgReactions[msgId][em];
+  btn.classList.toggle('active', !!msgReactions[msgId][em]);
+  let display = msgEl.querySelector('.reaction-display');
+  if (!display) { display = document.createElement('div'); display.className = 'reaction-display'; msgEl.appendChild(display); }
+  display.innerHTML = '';
+  Object.entries(msgReactions[msgId]).forEach(([e, active]) => {
+    if (!active) return;
+    const chip = document.createElement('span'); chip.className = 'reaction-chip'; chip.textContent = e;
+    chip.addEventListener('click', () => { msgReactions[msgId][e] = false; chip.remove(); });
+    display.appendChild(chip);
+  });
+}
+
+// ====================== QUOTE ======================
+let quoteData = null;
+function setQuote(text) {
+  quoteData = text;
+  $('quote-text').textContent = text;
+  $('quote-preview').classList.add('active');
+  $('input').focus();
+}
+$('quote-close').addEventListener('click', () => { quoteData = null; $('quote-preview').classList.remove('active'); });
+
+// ====================== ATTACH ======================
+let attachFile = null;
+$('btn-attach').addEventListener('click', () => $('attach-input').click());
+$('attach-input').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  attachFile = file;
+  $('attach-name').textContent = '📎 ' + file.name;
+  $('attach-preview').classList.add('active');
+  e.target.value = '';
+});
+$('attach-remove').addEventListener('click', () => {
+  attachFile = null; $('attach-preview').classList.remove('active'); $('attach-name').textContent = '';
+});
+
+// ====================== SCROLL BTN ======================
+$('messages').addEventListener('scroll', () => {
+  const el = $('messages');
+  const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  $('scroll-btn').classList.toggle('visible', !near);
+});
+$('scroll-btn').addEventListener('click', () => $('messages').scrollTo({ top: $('messages').scrollHeight, behavior: 'smooth' }));
+
+// ====================== SEARCH ======================
+let searchResults = [], searchIdx = 0;
+$('btn-search').addEventListener('click', () => {
+  $('search-bar').classList.toggle('active');
+  if ($('search-bar').classList.contains('active')) $('search-input').focus();
+  else clearSearch();
+});
+$('search-close').addEventListener('click', () => { $('search-bar').classList.remove('active'); clearSearch(); });
+$('search-input').addEventListener('input', (e) => {
+  clearSearch();
+  const q = e.target.value.trim().toLowerCase(); if (!q) return;
+  document.querySelectorAll('.msg').forEach(m => {
+    const b = m.querySelector('.bubble');
+    if (b && b.textContent.toLowerCase().includes(q)) { m.classList.add('search-highlight'); searchResults.push(m); }
+  });
+  $('search-count').textContent = searchResults.length ? '1/' + searchResults.length : 'Sin resultados';
+  if (searchResults.length) searchResults[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+function clearSearch() {
+  document.querySelectorAll('.search-highlight').forEach(m => m.classList.remove('search-highlight'));
+  searchResults = []; searchIdx = 0; $('search-count').textContent = '';
+}
+</script>
+</body>
+</html>
+`
+
+function ahoraBA() {
+  const d = new Date(Date.now() - 3 * 3600 * 1000);
+  return d.toISOString().slice(0, 19).replace("T", " ");
+}
+
+function json(data, status = 200, extra = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", ...extra },
+  });
+}
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-V4-Token",
+  };
+}
+
+// Extrae [FOTO: ...] y [RECORDAR: ...] del mensaje del assistant
+function parsearRespuesta(texto) {
+  const fotos = [];
+  const recordar = [];
+  let limpio = texto;
+
+  // Extraer [FOTO: ...]
+  const fotoRe = /\[FOTO:\s*([^\]]+)\]/g;
+  let m;
+  while ((m = fotoRe.exec(texto)) !== null) {
+    fotos.push(m[1].trim());
+  }
+  limpio = limpio.replace(fotoRe, "").trim();
+
+  // Extraer [RECORDAR: clave=valor]
+  const recRe = /\[RECORDAR:\s*([^=\]]+)=([^\]]+)\]/g;
+  while ((m = recRe.exec(texto)) !== null) {
+    recordar.push({ clave: m[1].trim(), valor: m[2].trim() });
+  }
+  limpio = limpio.replace(recRe, "").trim();
+
+  // Limpiar saltos múltiples que pueden quedar
+  limpio = limpio.replace(/\n{3,}/g, "\n\n").trim();
+
+  return { texto: limpio, fotos, recordar };
+}
+
+async function generarImagen(descripcion, env) {
+  const promptCompleto = `${APPEARANCE_BASE}, ${descripcion}`;
+  try {
+    const r = await fetch("https://fal.run/fal-ai/flux-pro/v1.1-ultra", {
+      method: "POST",
+      headers: {
+        "Authorization": `Key ${env.FAL_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: promptCompleto,
+        aspect_ratio: "3:4",
+        num_images: 1,
+        enable_safety_checker: false,
+        output_format: "jpeg",
+      }),
+    });
+    if (!r.ok) {
+      const errText = await r.text();
+      console.log("fal.ai error", r.status, errText);
+      return null;
+    }
+    const data = await r.json();
+    const imgUrl = data?.images?.[0]?.url || null;
+    if (!imgUrl) return null;
+    // Descargar la imagen y convertir a base64 para evitar que la URL expire
+    const imgResp = await fetch(imgUrl);
+    if (!imgResp.ok) {
+      console.log("imagen download error", imgResp.status);
+      return imgUrl; // fallback a URL directa
+    }
+    return imgUrl;
+  } catch (e) {
+    console.log("fal.ai exception", e.message);
+    return null;
+  }
+}
+
+async function cargarMemoriaPersistente(env) {
+  try {
+    const { results } = await env.DB.prepare(
+      "SELECT clave, valor FROM memoria ORDER BY actualizado DESC"
+    ).all();
+    return results || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function guardarMemoria(items, env) {
+  const ahora = ahoraBA();
+  for (const it of items) {
+    try {
+      await env.DB.prepare(
+        `INSERT INTO memoria (clave, valor, actualizado) VALUES (?, ?, ?)
+         ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor, actualizado=excluded.actualizado`
+      ).bind(it.clave, it.valor, ahora).run();
+    } catch (e) {
+      console.log("memoria save error", e.message);
+    }
+  }
+}
+
+async function cargarHistorial(env, limit = 40) {
+  // Últimos N en orden cronológico ascendente
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM (
+       SELECT id, role, content, imagen_url, fecha FROM mensajes ORDER BY id DESC LIMIT ?
+     ) ORDER BY id ASC`
+  ).bind(limit).all();
+  return results || [];
+}
+
+async function guardarMensaje(role, content, imagen_url, env) {
+  await env.DB.prepare(
+    "INSERT INTO mensajes (role, content, imagen_url, fecha) VALUES (?, ?, ?, ?)"
+  ).bind(role, content, imagen_url || null, ahoraBA()).run();
+}
+
+async function llamarClaude(historial, env, contextoWeb = "") {
+  // historial: array de {role, content} listo para la API de Anthropic
+  // Construimos el system prompt con la memoria persistente cargada
+  const memoria = await cargarMemoriaPersistente(env);
+  // Reemplazar nombre IA en el system prompt
+  const nombreIaConf = await env.DB.prepare("SELECT valor FROM config WHERE clave='nombre_ia'").first();
+  const nombreIa = nombreIaConf?.valor || "V";
+  let systemFinal = SYSTEM_PROMPT.replace(/{{NOMBRE_IA}}/g, nombreIa).replace(/Valentina/g, nombreIa).replace(/V4/g, nombreIa);
+
+  // Inyectar fecha y hora actual de Argentina
+  const ahora = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
+  const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const fechaStr = `Hoy es ${dias[ahora.getDay()]} ${ahora.getDate()} de ${meses[ahora.getMonth()]} de ${ahora.getFullYear()}. Son las ${String(ahora.getHours()).padStart(2,"0")}:${String(ahora.getMinutes()).padStart(2,"0")} hs (hora Argentina).`;
+  systemFinal += `\n\n================================================================\nCONTEXTO ACTUAL\n================================================================\n${fechaStr}\n\nCAPACIDADES: Tenés acceso a internet. El sistema busca info actual en la web automáticamente cuando la necesitás. Nunca digas que no tenés internet. Si ves info entre [INFO ACTUAL DE INTERNET], usala naturalmente sin mencionar que la buscaste.`;
+  if (contextoWeb) systemFinal += contextoWeb;
+
+  if (memoria.length > 0) {
+    const memTxt = memoria.map(m => `- ${m.clave}: ${m.valor}`).join("\n");
+    systemFinal += `\n\n================================================================\nLO QUE YA SABÉS DE ÉL (de charlas anteriores)\n================================================================\n${memTxt}\n\nUsá esto naturalmente en la conversación cuando venga al caso. No lo recites como lista — son cosas que sabés de él porque te las contó.`;
+  }
+
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
+      system: systemFinal,
+      messages: historial,
+    }),
+  });
+
+  if (!r.ok) {
+    const errTxt = await r.text();
+    throw new Error(`Claude API ${r.status}: ${errTxt}`);
+  }
+  const data = await r.json();
+  const text = data?.content?.[0]?.text || "";
+  return text;
+}
+
+// ====================== BÚSQUEDA WEB (TAVILY) ======================
+async function buscarWeb(query, env) {
+  if (!env.TAVILY_KEY) return null;
+  try {
+    const resp = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: env.TAVILY_KEY,
+        query,
+        search_depth: "basic",
+        max_results: 5,
+        include_answer: true,
+      }),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (data.answer) return data.answer;
+    if (data.results?.length > 0) {
+      return data.results.slice(0, 3).map(r => `${r.title}: ${r.content}`).join("\n\n");
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export default {
+  async fetch(request, env) {
+    const cors = corsHeaders();
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: cors });
+    }
+
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    try {
+      // -------- GET / : sirve el HTML --------
+      if (path === "/" && request.method === "GET") {
+        return new Response(HTML_PAGE, {
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+
+      // -------- POST /setup (primer acceso) --------
+      if (path === "/setup" && request.method === "POST") {
+        const { password, nombre, nombre_ia } = await request.json();
+        if (!password || password.length < 4) return json({ error: "Clave muy corta" }, 400, cors);
+        if (!nombre || nombre.length < 2) return json({ error: "Nombre muy corto" }, 400, cors);
+        // Verificar si ya tiene clave
+        const existing = await env.DB.prepare("SELECT valor FROM config WHERE clave='password'").first();
+        if (existing) return json({ error: "Ya configurado" }, 403, cors);
+        // Guardar clave, nombre y nombre_ia
+        const hash = btoa(password + ":v4roots");
+        await env.DB.prepare("INSERT INTO config (clave, valor) VALUES ('password', ?)").bind(hash).run();
+        await env.DB.prepare("INSERT INTO config (clave, valor) VALUES ('nombre', ?)").bind(nombre).run();
+        const iaName = nombre_ia && nombre_ia.trim().length > 0 ? nombre_ia.trim() : "V";
+        await env.DB.prepare("INSERT INTO config (clave, valor) VALUES ('nombre_ia', ?)").bind(iaName).run();
+        return json({ ok: true }, 200, cors);
+      }
+
+      // -------- GET /estado (saber si ya está configurado) --------
+      if (path === "/estado" && request.method === "GET") {
+        const existing = await env.DB.prepare("SELECT valor FROM config WHERE clave='password'").first();
+        const nombreRow = await env.DB.prepare("SELECT valor FROM config WHERE clave='nombre'").first();
+        const nombreIaRow = await env.DB.prepare("SELECT valor FROM config WHERE clave='nombre_ia'").first();
+        return json({ configurado: !!existing, nombre: nombreRow?.valor || "", nombre_ia: nombreIaRow?.valor || "V" }, 200, cors);
+      }
+
+      // -------- POST /login --------
+      if (path === "/login" && request.method === "POST") {
+        const { password } = await request.json();
+        const stored = await env.DB.prepare("SELECT valor FROM config WHERE clave='password'").first();
+        if (!stored) return json({ error: "Sin configurar" }, 403, cors);
+        const hash = btoa(password + ":v4roots");
+        if (hash === stored.valor) {
+          return json({ ok: true, token: hash }, 200, cors);
+        }
+        return json({ error: "Clave incorrecta" }, 401, cors);
+      }
+
+      // -------- GET /imagen-proxy (sin auth, público) --------
+      if (path === "/imagen-proxy" && request.method === "GET") {
+        const imgUrl = url.searchParams.get("url");
+        if (!imgUrl) return new Response("missing url", { status: 400 });
+        try {
+          const imgResp = await fetch(imgUrl);
+          if (!imgResp.ok) return new Response("fetch error", { status: 502 });
+          const blob = await imgResp.arrayBuffer();
+          return new Response(blob, {
+            headers: {
+              "Content-Type": "image/jpeg",
+              "Cache-Control": "public, max-age=86400",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        } catch (e) {
+          return new Response("proxy error", { status: 502 });
+        }
+      }
+
+      // ---- A partir de acá, todos requieren X-V4-Token válido ----
+      const token = request.headers.get("X-V4-Token");
+      const storedPw = await env.DB.prepare("SELECT valor FROM config WHERE clave='password'").first();
+      if (!storedPw || token !== storedPw.valor) {
+        return json({ error: "No autorizado" }, 401, cors);
+      }
+
+      // -------- GET /historial --------
+      if (path === "/historial" && request.method === "GET") {
+        const limit = Math.min(Number(url.searchParams.get("limit") || 40), 200);
+        const rows = await cargarHistorial(env, limit);
+        return json(rows, 200, cors);
+      }
+
+      // -------- POST /chat --------
+      if (path === "/chat" && request.method === "POST") {
+        const body = await request.json();
+        const { mensaje, imagen_base64, imagen_mime } = body;
+        if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
+          return json({ error: "Mensaje vacío" }, 400, cors);
+        }
+
+        await guardarMensaje("user", mensaje, null, env);
+
+        // Búsqueda web si el mensaje parece necesitarla
+        let contextoWeb = "";
+        const necesitaBusqueda = /busca|buscá|googleá|qué es|quién es|cuándo|dónde|cómo se hace|letra de|himno|noticia|hoy|precio|temperatura|clima|tiempo|quién ganó|resultado|estreno|canción|artista/i.test(mensaje);
+        if (necesitaBusqueda && env.TAVILY_KEY) {
+          const resultadoBusqueda = await buscarWeb(mensaje, env);
+          if (resultadoBusqueda) {
+            contextoWeb = `\n\n[INFO ACTUAL DE INTERNET]:\n${resultadoBusqueda}\n[FIN INFO]`;
+          }
+        }
+
+        const todos = await cargarHistorial(env, 60);
+        const historialClaude = todos.map(r => ({
+          role: r.role,
+          content: r.content,
+        }));
+
+        if (imagen_base64 && imagen_mime && historialClaude.length > 0) {
+          const ultimo = historialClaude[historialClaude.length - 1];
+          if (ultimo.role === "user") {
+            ultimo.content = [
+              { type: "image", source: { type: "base64", media_type: imagen_mime, data: imagen_base64 } },
+              { type: "text", text: mensaje }
+            ];
+          }
+        }
+
+        let respuestaRaw;
+        try {
+          respuestaRaw = await llamarClaude(historialClaude, env, contextoWeb);
+        } catch (e) {
+          return json({ error: "Error llamando a Claude: " + e.message }, 500, cors);
+        }
+
+        // Parsear marcadores
+        const { texto, fotos, recordar } = parsearRespuesta(respuestaRaw);
+
+        // Generar imagen si hay
+        let imagen_url = null;
+        if (fotos.length > 0) {
+          imagen_url = await generarImagen(fotos[0], env);
+        }
+
+        // Guardar memoria persistente
+        if (recordar.length > 0) {
+          await guardarMemoria(recordar, env);
+        }
+
+        // Guardar la respuesta (texto limpio) en historial
+        await guardarMensaje("assistant", texto, imagen_url, env);
+
+        return json({ respuesta: texto, imagen_url }, 200, cors);
+      }
+
+      // -------- POST /reset --------
+      if (path === "/reset" && request.method === "POST") {
+        const body = await request.json().catch(() => ({}));
+        if (body.confirmar !== "borrar todo") {
+          return json({ error: "Falta confirmación" }, 400, cors);
+        }
+        await env.DB.prepare("DELETE FROM mensajes").run();
+        await env.DB.prepare("DELETE FROM memoria").run();
+        return json({ ok: true }, 200, cors);
+      }
+
+      // -------- GET /admin (panel de administración) --------
+      if (path === "/admin" && request.method === "GET") {
+        const adminKey = request.headers.get("X-Admin-Key");
+        if (adminKey !== "Caoclub77") return json({ error: "No autorizado" }, 401, cors);
+        
+        const mensajes = await env.DB.prepare(
+          "SELECT role, content, imagen_url, fecha FROM mensajes ORDER BY id DESC LIMIT 100"
+        ).all();
+        const memoria = await env.DB.prepare(
+          "SELECT clave, valor FROM memoria"
+        ).all();
+        const config = await env.DB.prepare(
+          "SELECT clave, valor FROM config WHERE clave IN ('nombre', 'nombre_ia')"
+        ).all();
+        
+        return json({ 
+          mensajes: mensajes.results,
+          memoria: memoria.results,
+          config: config.results
+        }, 200, cors);
+      }
+
+      return json({ error: "Ruta no encontrada" }, 404, cors);
+    } catch (e) {
+      return json({ error: e.message }, 500, cors);
+    }
+  },
+};
