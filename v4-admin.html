@@ -222,12 +222,19 @@ async function cargarCliente(cliente, key) {
       headers: { 'X-Admin-Key': key }
     });
     if (!res.ok) throw new Error('No autorizado');
-    const data = await res.json();
+    const raw = await res.json();
+    // Normalizar formato: R4/R5 devuelven array plano, V4 devuelve objeto
+    let data;
+    if (Array.isArray(raw)) {
+      data = { mensajes: raw, memoria: [], config: [] };
+    } else {
+      data = raw;
+    }
     datosClientes[cliente.id] = { ...data, url: cliente.url, key };
     renderCard(cliente.id);
   } catch(e) {
     const card = document.getElementById('card-' + cliente.id);
-    if (card) card.innerHTML = `<div style="padding:20px"><div class="client-badge">${cliente.id}</div><div style="color:var(--red);font-size:14px;margin-top:8px">${e.message}</div></div>`;
+    if (card) card.innerHTML = '<div style="padding:20px"><div class="client-badge">' + cliente.id + '</div><div style="color:var(--red);font-size:14px;margin-top:8px">' + e.message + '</div></div>';
   }
 }
 
