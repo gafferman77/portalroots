@@ -31,7 +31,7 @@ body { background: var(--bg); color: var(--text); font-family: 'EB Garamond', se
 .container { max-width: 1200px; margin: 0 auto; padding: 28px; }
 
 /* CLIENTS GRID */
-.clients-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.clients-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
 .client-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
 .client-card:hover { border-color: var(--border2); background: var(--surface2); }
 .client-card.active { border-color: var(--copper); }
@@ -129,9 +129,7 @@ body { background: var(--bg); color: var(--text); font-family: 'EB Garamond', se
 
   <!-- CLIENTES -->
   <div class="clients-grid" id="clientsGrid">
-    <div class="loading-card">ingresá la clave y cargá</div>
-    <div class="loading-card"></div>
-    <div class="loading-card"></div>
+    <div class="loading-card" style="grid-column:span 2">ingresá la clave y cargá</div>
   </div>
 
   <!-- DETALLE -->
@@ -187,13 +185,10 @@ body { background: var(--bg); color: var(--text); font-family: 'EB Garamond', se
 
 <script>
 const CLIENTES = [
-  { id: 'c01', url: 'https://v4-c01.rootsstudioar.workers.dev' },
-  { id: 'c02', url: 'https://v4-c02.rootsstudioar.workers.dev' },
-  { id: 'c03', url: 'https://v4-c03.rootsstudioar.workers.dev' },
-  { id: 'c04', url: 'https://v4-c04.rootsstudioar.workers.dev' },
-  { id: 'c05', url: 'https://v4-c05.rootsstudioar.workers.dev' },
-  { id: 'r4', url: 'https://r4.rootsstudioar.workers.dev' },
-  { id: 'r5', url: 'https://r5.rootsstudioar.workers.dev' },
+  { id: 'c01', url: 'https://v4-c01.rootsstudioar.workers.dev', tipo: 'v4' },
+  { id: 'c02', url: 'https://v4-c02.rootsstudioar.workers.dev', tipo: 'v4' },
+  { id: 'r4', url: 'https://r4.rootsstudioar.workers.dev', tipo: 'rx' },
+  { id: 'r5', url: 'https://r5.rootsstudioar.workers.dev', tipo: 'rx' },
 ];
 let datosClientes = {};
 let clienteActivo = null;
@@ -433,6 +428,11 @@ async function resetearCliente() {
   if (!clienteActivo) return;
   const d = datosClientes[clienteActivo];
   if (!d) return;
+  const cliente = CLIENTES.find(c => c.id === clienteActivo);
+  if (cliente && cliente.tipo === 'rx') {
+    toast('Reset no disponible para tutores — usá Wrangler');
+    return;
+  }
   if (!confirm('¿Seguro? Esto borra toda la conversación y memoria de ' + clienteActivo.toUpperCase())) return;
 
   try {
