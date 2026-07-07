@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calistenia · Roots Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obsidian:#0e0e0e;
+  --panel:#171717;
+  --panel-2:#1f1f1f;
+  --line:#2a2a2a;
+  --green:#3ecf3e;
+  --yellow:#f5c200;
+  --red:#e03030;
+  --ink:#ececec;
+  --muted:#8a8a8a;
+  --dim:#5a5a5a;
+  --display:'Oswald',sans-serif;
+  --body:'EB Garamond',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--obsidian);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:18px;
+  line-height:1.5;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 80px}
+
+/* ---- Tricolor spine ---- */
+.spine{
+  height:4px;width:100%;
+  background:linear-gradient(90deg,var(--green) 0 33.33%,var(--yellow) 33.33% 66.66%,var(--red) 66.66% 100%);
+}
+
+/* ---- Gate ---- */
+#gate{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:20px;gap:22px;
+}
+#gate .mark{font-family:var(--display);font-weight:300;letter-spacing:.35em;
+  text-transform:uppercase;font-size:13px;color:var(--muted)}
+#gate h1{font-family:var(--display);font-weight:600;font-size:clamp(38px,11vw,64px);
+  text-transform:uppercase;letter-spacing:.02em;line-height:.95}
+#gate h1 span{color:var(--green)}
+#gate p{color:var(--muted);max-width:340px;font-style:italic}
+.code-row{display:flex;gap:10px;width:100%;max-width:320px}
+input[type=password],input[type=text],input[type=number]{
+  background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  font-family:var(--display);font-weight:400;font-size:18px;
+  padding:13px 14px;border-radius:0;width:100%;outline:none;
+}
+input:focus{border-color:var(--green)}
+.btn{
+  font-family:var(--display);font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;font-size:15px;background:var(--green);color:#071a07;
+  border:none;padding:13px 22px;cursor:pointer;white-space:nowrap;
+  transition:filter .15s;
+}
+.btn:hover{filter:brightness(1.12)}
+.btn:active{filter:brightness(.9)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--green);color:var(--green);filter:none}
+.btn.red{background:transparent;color:var(--red);border:1px solid var(--line)}
+.btn.red:hover{border-color:var(--red);filter:none}
+#gateMsg{color:var(--red);font-style:italic;min-height:22px;font-size:15px}
+
+/* ---- App ---- */
+#app{display:none}
+header.top{
+  padding:22px 0 18px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
+}
+.top .brand{font-family:var(--display);font-weight:600;text-transform:uppercase;
+  letter-spacing:.03em;font-size:30px;line-height:1}
+.top .brand span{color:var(--green)}
+.top .sub{font-family:var(--display);font-weight:300;letter-spacing:.25em;
+  text-transform:uppercase;font-size:11px;color:var(--dim);margin-top:4px}
+
+/* stats */
+.stats{display:flex;gap:0;border:1px solid var(--line);margin:22px 0 8px}
+.stat{flex:1;padding:16px 12px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:none}
+.stat .n{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;color:var(--green)}
+.stat .n.y{color:var(--yellow)}
+.stat .n.r{color:var(--red)}
+.stat .l{font-family:var(--display);font-weight:300;text-transform:uppercase;
+  letter-spacing:.15em;font-size:10px;color:var(--muted);margin-top:6px}
+
+/* section label */
+.eyebrow{font-family:var(--display);font-weight:500;text-transform:uppercase;
+  letter-spacing:.22em;font-size:12px;color:var(--muted);
+  margin:38px 0 4px;display:flex;align-items:center;gap:12px}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+.hint{color:var(--dim);font-style:italic;font-size:15px;margin-bottom:16px}
+
+/* exercise card */
+.ex{border:1px solid var(--line);background:var(--panel);margin-bottom:14px}
+.ex-head{display:flex;align-items:stretch}
+.ex-rail{width:6px;flex-shrink:0}
+.ex-body{flex:1;padding:16px 18px}
+.ex-title{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ex-name{font-family:var(--display);font-weight:600;font-size:22px;text-transform:uppercase;letter-spacing:.01em}
+.ex-pat{font-family:var(--display);font-weight:300;text-transform:uppercase;
+  letter-spacing:.15em;font-size:11px;color:var(--muted)}
+.ex-last{font-style:italic;color:var(--dim);font-size:15px;margin-top:2px}
+.ex-last b{color:var(--yellow);font-style:normal;font-family:var(--display);font-weight:500}
+
+/* progression ladder */
+.ladder{margin:14px 0 4px}
+.ladder select{
+  width:100%;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--body);font-size:16px;padding:10px 12px;cursor:pointer;outline:none;
+}
+.ladder select:focus{border-color:var(--green)}
+.rung{font-size:14px;color:var(--dim);font-style:italic;margin-top:6px}
+
+/* set inputs */
+.sets{display:flex;gap:8px;margin-top:14px;align-items:flex-end}
+.setcol{flex:1}
+.setcol label{display:block;font-family:var(--display);font-weight:300;
+  text-transform:uppercase;letter-spacing:.12em;font-size:10px;color:var(--muted);margin-bottom:5px;text-align:center}
+.setcol input{text-align:center;padding:11px 4px}
+.unit{font-family:var(--display);font-weight:300;font-size:12px;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.1em;align-self:center;padding-bottom:11px}
+
+.notefield{width:100%;margin-top:12px;background:var(--panel-2);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--body);font-style:italic;font-size:15px;padding:10px 12px;outline:none;resize:vertical;min-height:44px}
+.notefield:focus{border-color:var(--green)}
+
+.save-row{display:flex;gap:10px;margin:24px 0 10px;flex-wrap:wrap}
+.save-row .btn{flex:1;min-width:140px}
+
+/* history */
+.log{border:1px solid var(--line);margin-bottom:12px;background:var(--panel)}
+.log-head{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;user-select:none}
+.log-date{font-family:var(--display);font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:15px}
+.log-date .dow{color:var(--green)}
+.log-mini{font-style:italic;color:var(--dim);font-size:14px}
+.log-body{padding:0 16px 14px;display:none}
+.log-body.open{display:block}
+.log-row{padding:9px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.log-row .ln{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:15px}
+.log-row .lv{color:var(--yellow);font-family:var(--display);font-weight:500}
+.log-row .nt{width:100%;font-style:italic;color:var(--dim);font-size:14px}
+.chev{color:var(--muted);font-family:var(--display);transition:transform .2s}
+.chev.open{transform:rotate(90deg)}
+
+.empty{text-align:center;color:var(--dim);font-style:italic;padding:30px 0}
+
+/* plan reference */
+.plan-note{border:1px solid var(--line);background:var(--panel);padding:16px 18px;
+  font-style:italic;color:var(--muted);font-size:15px;line-height:1.6}
+.plan-note b{color:var(--ink);font-style:normal}
+.plan-note .k{font-family:var(--display);font-weight:500;font-style:normal;color:var(--green);
+  text-transform:uppercase;letter-spacing:.06em;font-size:13px}
+
+.foot{text-align:center;color:var(--dim);font-style:italic;font-size:14px;margin-top:44px}
+.foot .lock{color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:var(--green);color:#071a07;font-family:var(--display);font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;font-size:14px;padding:12px 24px;
+  opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:480px){
+  body{font-size:17px}
+  .setcol input{padding:11px 2px}
+  .stat .n{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="spine"></div>
+
+<!-- ============ GATE ============ -->
+<section id="gate">
+  <div class="mark">Roots Studio · Privado</div>
+  <h1>Cali<span>stenia</span></h1>
+  <p>Tu peso, tu ritmo, tu progreso. Ingresá el código para entrar.</p>
+  <div class="code-row">
+    <input type="password" id="codeInput" placeholder="Código" autocomplete="off" onkeydown="if(event.key==='Enter')tryEnter()">
+    <button class="btn" onclick="tryEnter()">Entrar</button>
+  </div>
+  <div id="gateMsg"></div>
+</section>
+
+<!-- ============ APP ============ -->
+<main id="app">
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">Cali<span>stenia</span></div>
+      <div class="sub">Full body · 3× semana · Sr.M</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Sesiones</div></div>
+    <div class="stat"><div class="n y" id="stWeek">0</div><div class="l">Esta semana</div></div>
+    <div class="stat"><div class="n r" id="stStreak">0</div><div class="l">Racha (sem)</div></div>
+  </div>
+
+  <div class="eyebrow">Sesión de hoy</div>
+  <p class="hint">3 series por ejercicio · dejá 1-2 reps en el tanque · descanso 60-90s. Cargá lo que hiciste y guardá al final.</p>
+
+  <div id="exercises"></div>
+
+  <div class="save-row">
+    <button class="btn" onclick="saveSession()">Guardar sesión</button>
+    <button class="btn ghost" onclick="clearInputs()">Limpiar</button>
+  </div>
+
+  <div class="eyebrow">Cómo progresás</div>
+  <div class="plan-note">
+    <span class="k">La regla</span> — sobrecarga progresiva. Cada semana intentá <b>una repetición más</b> en algún ejercicio. Cuando un patrón se te hace fácil en las 3 series completas, subí al siguiente <b>escalón</b> (el selector de cada ejercicio). No hace falta que todos avancen juntos: las piernas suelen ir más rápido que la tracción.<br><br>
+    <span class="k">A los 43</span> — calentá 5-10 min antes (hombros, cadera, muñecas), nunca en frío. El músculo crece descansando, no entrenando: dejá un día entre sesiones. Sumá caminata rápida o bici 2 días sueltos.
+  </div>
+
+  <div class="eyebrow">Historial</div>
+  <div id="history"></div>
+
+  <div class="foot">
+    Roots Studio · <span class="lock" onclick="lock()">Cerrar sesión</span>
+  </div>
+</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   CÓDIGO DE ACCESO — cambialo por el que quieras cuando lo integres.
+   Es un gate liviano del lado del cliente (igual que v4-admin): sirve
+   para tener la página fuera de la vista, no es seguridad real.
+   ===================================================================== */
+const CODIGO_ACCESO = "roots";
+
+/* ---- Plan: 5 patrones, cada uno con escalones de progresión ---- */
+const PLAN = [
+  {
+    id:"empuje", pattern:"Empuje", color:"var(--green)", unit:"reps",
+    variants:[
+      "Flexiones en pared",
+      "Flexiones inclinadas (mesa)",
+      "Flexiones inclinadas (silla)",
+      "Flexiones de rodillas",
+      "Flexiones completas",
+      "Flexiones diamante",
+      "Flexiones declinadas (pies elevados)"
+    ]
+  },
+  {
+    id:"traccion", pattern:"Tracción", color:"var(--yellow)", unit:"reps",
+    variants:[
+      "Remo con toalla en puerta",
+      "Remo invertido bajo mesa (pies adelante)",
+      "Remo invertido bajo mesa (cuerpo horizontal)",
+      "Dominadas negativas (bajar lento)",
+      "Dominadas asistidas (banda)",
+      "Dominadas completas"
+    ]
+  },
+  {
+    id:"piernas", pattern:"Piernas", color:"var(--red)", unit:"reps",
+    variants:[
+      "Sentadilla a silla (parcial)",
+      "Sentadilla completa",
+      "Sentadilla + pausa abajo",
+      "Zancadas",
+      "Sentadilla búlgara",
+      "Sentadilla a una pierna asistida (pistol progresión)"
+    ]
+  },
+  {
+    id:"core", pattern:"Core", color:"var(--green)", unit:"seg",
+    variants:[
+      "Plancha de rodillas",
+      "Plancha completa",
+      "Plancha + elevación de brazo/pierna",
+      "Plancha lateral",
+      "Elevación de piernas acostado (sumá reps)"
+    ]
+  },
+  {
+    id:"bisagra", pattern:"Bisagra / Glúteo", color:"var(--yellow)", unit:"reps",
+    variants:[
+      "Puente de glúteo",
+      "Puente + pausa arriba",
+      "Puente marcha (alterná piernas)",
+      "Puente a una pierna",
+      "Peso muerto rumano a una pierna (sin peso)"
+    ]
+  }
+];
+
+const STORE_KEY = "roots_calistenia_v1";
+let db = load();
+
+function load(){
+  try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {sessions:[], variant:{}}; }
+  catch(e){ return {sessions:[], variant:{}}; }
+}
+function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
+
+/* ---- Gate ---- */
+function tryEnter(){
+  const v = document.getElementById('codeInput').value.trim();
+  if(v === CODIGO_ACCESO){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    boot();
+  } else {
+    document.getElementById('gateMsg').textContent = "Código incorrecto. Probá de nuevo.";
+    document.getElementById('codeInput').select();
+  }
+}
+function lock(){ location.reload(); }
+
+/* ---- Build exercise cards ---- */
+function boot(){
+  renderExercises();
+  renderStats();
+  renderHistory();
+}
+
+function lastFor(id){
+  for(let i=db.sessions.length-1;i>=0;i--){
+    const e = db.sessions[i].entries.find(x=>x.id===id);
+    if(e) return {sets:e.sets, variant:e.variant, date:db.sessions[i].date};
+  }
+  return null;
+}
+
+function renderExercises(){
+  const wrap = document.getElementById('exercises');
+  wrap.innerHTML = '';
+  PLAN.forEach(ex=>{
+    const last = lastFor(ex.id);
+    const savedVar = (db.variant[ex.id] !== undefined) ? db.variant[ex.id]
+                     : (last ? ex.variants.indexOf(last.variant) : 0);
+    const vIdx = (savedVar >= 0 && savedVar < ex.variants.length) ? savedVar : 0;
+
+    const opts = ex.variants.map((v,i)=>
+      `<option value="${i}" ${i===vIdx?'selected':''}>Escalón ${i+1} — ${v}</option>`).join('');
+
+    let lastTxt = '<span style="color:var(--dim)">— sin registro previo</span>';
+    if(last){
+      lastTxt = `Última: <b>${last.sets.filter(s=>s!=='').join(' · ')||'—'}</b> ${ex.unit}`;
+    }
+
+    const card = document.createElement('div');
+    card.className='ex';
+    card.innerHTML = `
+      <div class="ex-head">
+        <div class="ex-rail" style="background:${ex.color}"></div>
+        <div class="ex-body">
+          <div class="ex-title">
+            <span class="ex-name">${ex.pattern}</span>
+            <span class="ex-pat">${ex.unit==='seg'?'aguante':'repeticiones'}</span>
+          </div>
+          <div class="ex-last" id="last-${ex.id}">${lastTxt}</div>
+          <div class="ladder">
+            <select id="var-${ex.id}" onchange="changeVar('${ex.id}')">${opts}</select>
+            <div class="rung" id="rung-${ex.id}"></div>
+          </div>
+          <div class="sets">
+            <div class="setcol"><label>Serie 1</label><input type="number" inputmode="numeric" id="${ex.id}-s0" min="0"></div>
+            <div class="setcol"><label>Serie 2</label><input type="number" inputmode="numeric" id="${ex.id}-s1" min="0"></div>
+            <div class="setcol"><label>Serie 3</label><input type="number" inputmode="numeric" id="${ex.id}-s2" min="0"></div>
+            <span class="unit">${ex.unit}</span>
+          </div>
+          <textarea class="notefield" id="note-${ex.id}" placeholder="Nota (opcional): sensación, molestia, etc."></textarea>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+    updateRung(ex.id);
+  });
+}
+
+function updateRung(id){
+  const ex = PLAN.find(e=>e.id===id);
+  const i = +document.getElementById('var-'+id).value;
+  const el = document.getElementById('rung-'+id);
+  const total = ex.variants.length;
+  const next = i < total-1 ? ` → después: ${ex.variants[i+1]}` : ' · último escalón, ¡crack!';
+  el.textContent = `Escalón ${i+1} de ${total}${next}`;
+}
+
+function changeVar(id){
+  db.variant[id] = +document.getElementById('var-'+id).value;
+  persist();
+  updateRung(id);
+}
+
+/* ---- Save ---- */
+function saveSession(){
+  const entries = [];
+  let any = false;
+  PLAN.forEach(ex=>{
+    const sets = [0,1,2].map(n=>{
+      const v = document.getElementById(`${ex.id}-s${n}`).value.trim();
+      return v==='' ? '' : String(Math.max(0, parseInt(v)||0));
+    });
+    const note = document.getElementById('note-'+ex.id).value.trim();
+    const variant = ex.variants[+document.getElementById('var-'+ex.id).value];
+    if(sets.some(s=>s!=='') || note){
+      any = true;
+      entries.push({id:ex.id, pattern:ex.pattern, variant, unit:ex.unit, sets, note});
+    }
+  });
+
+  if(!any){ toast("Cargá al menos una serie"); return; }
+
+  const now = new Date();
+  db.sessions.push({ ts: now.getTime(), date: now.toISOString(), entries });
+  persist();
+  clearInputs();
+  renderExercises();
+  renderStats();
+  renderHistory();
+  toast("Sesión guardada ✓");
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function clearInputs(){
+  PLAN.forEach(ex=>{
+    [0,1,2].forEach(n=>{ const el=document.getElementById(`${ex.id}-s${n}`); if(el) el.value=''; });
+    const nt=document.getElementById('note-'+ex.id); if(nt) nt.value='';
+  });
+}
+
+/* ---- Stats ---- */
+function weekKey(d){
+  const dt = new Date(d);
+  const day = (dt.getDay()+6)%7; // lunes=0
+  dt.setDate(dt.getDate()-day); dt.setHours(0,0,0,0);
+  return dt.getTime();
+}
+function renderStats(){
+  document.getElementById('stTotal').textContent = db.sessions.length;
+  const thisWeek = weekKey(Date.now());
+  const inWeek = db.sessions.filter(s=>weekKey(s.ts)===thisWeek).length;
+  document.getElementById('stWeek').textContent = inWeek;
+
+  // racha: semanas consecutivas (hasta esta) con >=1 sesión
+  const weeks = new Set(db.sessions.map(s=>weekKey(s.ts)));
+  let streak=0, cur=thisWeek;
+  const WEEK=7*24*3600*1000;
+  // permití que la racha siga si esta semana aún no entrenó pero la anterior sí
+  if(!weeks.has(cur)) cur -= WEEK;
+  while(weeks.has(cur)){ streak++; cur-=WEEK; }
+  document.getElementById('stStreak').textContent = streak;
+}
+
+/* ---- History ---- */
+const DOW = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MON = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function renderHistory(){
+  const wrap = document.getElementById('history');
+  if(db.sessions.length===0){
+    wrap.innerHTML = '<div class="empty">Todavía no hay sesiones. Guardá la primera y va a aparecer acá.</div>';
+    return;
+  }
+  wrap.innerHTML='';
+  [...db.sessions].reverse().forEach((s,ri)=>{
+    const realIdx = db.sessions.length-1-ri;
+    const d = new Date(s.ts);
+    const dateStr = `<span class="dow">${DOW[d.getDay()]}</span> ${d.getDate()} ${MON[d.getMonth()]}`;
+    const mini = s.entries.map(e=>e.pattern).join(' · ');
+    const rows = s.entries.map(e=>{
+      const val = e.sets.filter(x=>x!=='').join(' · ') || '—';
+      const nt = e.note ? `<div class="nt">“${e.note}”</div>` : '';
+      return `<div class="log-row">
+        <span class="ln">${e.pattern} <span style="color:var(--dim);font-weight:300">· ${e.variant}</span></span>
+        <span class="lv">${val} ${e.unit}</span>${nt}</div>`;
+    }).join('');
+
+    const el=document.createElement('div');
+    el.className='log';
+    el.innerHTML=`
+      <div class="log-head" onclick="toggleLog(this)">
+        <div><div class="log-date">${dateStr}</div><div class="log-mini">${mini}</div></div>
+        <span class="chev">▶</span>
+      </div>
+      <div class="log-body">
+        ${rows}
+        <div style="margin-top:12px"><button class="btn red" onclick="delSession(${realIdx});event.stopPropagation()">Borrar sesión</button></div>
+      </div>`;
+    wrap.appendChild(el);
+  });
+}
+function toggleLog(head){
+  head.nextElementSibling.classList.toggle('open');
+  head.querySelector('.chev').classList.toggle('open');
+}
+function delSession(i){
+  if(!confirm('¿Borrar esta sesión? No se puede deshacer.')) return;
+  db.sessions.splice(i,1);
+  persist(); renderExercises(); renderStats(); renderHistory();
+  toast("Sesión borrada");
+}
+
+/* ---- Toast ---- */
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// autofocus código
+document.getElementById('codeInput').focus();
+</script>
+</body>
+</html>
