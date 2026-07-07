@@ -219,6 +219,15 @@ header.top{padding:22px 0 16px;border-bottom:1px solid var(--line);
   border:1px solid rgba(255,255,255,.25);padding:10px 16px}
 .t-hint{color:rgba(255,255,255,.4);font-style:italic;font-size:14px;margin-top:18px}
 
+.t-guide{margin-top:22px;max-width:440px;width:100%;text-align:center}
+.t-fig{width:170px;height:96px;margin:0 auto 10px}
+.t-fig svg{width:100%;height:100%;display:block}
+.t-guide-name{font-family:var(--display);font-weight:500;text-transform:uppercase;
+  letter-spacing:.05em;font-size:16px;color:rgba(255,255,255,.9)}
+.t-guide-how{font-style:italic;font-size:15px;color:rgba(255,255,255,.62);
+  margin-top:7px;line-height:1.45}
+.exhow{font-size:15px;color:var(--muted);font-style:italic;margin-top:8px;line-height:1.45}
+
 @media (max-width:400px){
   body{font-size:18px}
   .top .brand{font-size:30px}
@@ -327,7 +336,11 @@ header.top{padding:22px 0 16px;border-bottom:1px solid var(--line);
     <button class="t-btn" onclick="skipPhase()">Saltar</button>
     <button class="t-btn" onclick="restartTimer()">Reiniciar</button>
   </div>
-  <div class="t-hint">Cada minuto de ejercicio completado suma una ronda.</div>
+  <div class="t-guide" id="tGuide">
+    <div class="t-fig" id="tFig"></div>
+    <div class="t-guide-name" id="tGuideName"></div>
+    <div class="t-guide-how" id="tGuideHow"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -357,6 +370,53 @@ const PLAN = [
     "Puente de glúteo","Puente + pausa arriba","Puente marcha (alterná)",
     "Puente a una pierna","Peso muerto rumano a una pierna (sin peso)"]}
 ];
+
+/* ---- Diagramas (SVG) por patrón ---- */
+const FIGURE = {
+  empuje:`<svg viewBox="0 0 160 90" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="80" x2="152" y2="80" stroke="rgba(255,255,255,.18)" stroke-width="3"/><circle cx="34" cy="44" r="9" fill="var(--green)" stroke="none"/><path d="M44 50 L92 58 L140 70"/><path d="M48 52 L56 74 L49 80"/><path d="M140 70 L151 78"/><path d="M74 24 L74 42 M69 30 L74 24 L79 30" stroke="var(--yellow)" stroke-width="3"/></svg>`,
+  traccion:`<svg viewBox="0 0 160 90" fill="none" stroke="var(--yellow)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="82" x2="152" y2="82" stroke="rgba(255,255,255,.18)" stroke-width="3"/><line x1="36" y1="22" x2="120" y2="22" stroke="rgba(255,255,255,.35)" stroke-width="5"/><circle cx="62" cy="44" r="8" fill="var(--yellow)" stroke="none"/><path d="M67 50 L104 66 L144 80"/><path d="M65 46 L63 24"/><path d="M118 40 L118 24 M113 30 L118 24 L123 30" stroke="var(--green)" stroke-width="3"/></svg>`,
+  piernas:`<svg viewBox="0 0 160 90" fill="none" stroke="var(--red)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="86" x2="152" y2="86" stroke="rgba(255,255,255,.18)" stroke-width="3"/><circle cx="74" cy="20" r="9" fill="var(--red)" stroke="none"/><path d="M74 30 L66 58 L106 60 L106 84"/><path d="M74 36 L108 46"/><path d="M66 58 L86 84"/><path d="M138 44 L138 68 M133 62 L138 68 L143 62" stroke="var(--yellow)" stroke-width="3"/></svg>`,
+  core:`<svg viewBox="0 0 160 90" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="78" x2="152" y2="78" stroke="rgba(255,255,255,.18)" stroke-width="3"/><circle cx="30" cy="46" r="8" fill="var(--green)" stroke="none"/><path d="M40 50 L104 60 L150 68"/><path d="M44 52 L46 70 L66 70"/><path d="M150 68 L150 76"/></svg>`,
+  bisagra:`<svg viewBox="0 0 160 90" fill="none" stroke="var(--yellow)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="82" x2="152" y2="82" stroke="rgba(255,255,255,.18)" stroke-width="3"/><circle cx="30" cy="72" r="8" fill="var(--yellow)" stroke="none"/><path d="M40 74 L74 74 L108 48 L132 68 L132 80"/><path d="M108 30 L108 44 M103 36 L108 30 L113 36" stroke="var(--green)" stroke-width="3"/></svg>`
+};
+
+/* ---- Cómo se hace, por escalón (mismo orden que variants) ---- */
+const HOWTO = {
+  empuje:[
+    "Parado frente a la pared, manos a la altura del pecho. Doblá los codos y empujá.",
+    "Manos en el borde de una mesa firme, cuerpo recto. Bajá el pecho y empujá.",
+    "Igual que en la mesa pero con una silla: cuanto más bajo, más difícil.",
+    "En el piso, apoyado en las rodillas. Cuerpo recto de rodillas a cabeza.",
+    "Manos y punta de pies. Cuerpo como tabla, bajá el pecho al piso y subí.",
+    "Manos juntas formando un rombo bajo el pecho. Trabajás más el tríceps.",
+    "Pies sobre una silla, manos en el piso. Más carga en los hombros."],
+  traccion:[
+    "Toalla trabada en una puerta firme. Agarrala, inclinate atrás y tirá del cuerpo.",
+    "Acostado bajo una mesa firme, agarrá el borde y llevá el pecho hacia arriba.",
+    "Igual pero con el cuerpo más horizontal y recto: más difícil.",
+    "Subí como puedas (o con salto) y bajá lo más lento posible, controlando.",
+    "Con una banda elástica ayudando en los pies, hacé la dominada completa.",
+    "Colgado de la barra, tirá hasta pasar el mentón. Bajá controlando."],
+  piernas:[
+    "Bajá como si te sentaras en una silla, tocala apenas y subí.",
+    "Pies al ancho de hombros. Bajá hasta que los muslos queden paralelos al piso.",
+    "Bajá y aguantá 2 segundos abajo antes de subir.",
+    "Un paso largo al frente, bajá la rodilla de atrás, subí y cambiá de pierna.",
+    "Pie de atrás apoyado en una silla, bajá con la pierna de adelante.",
+    "Sentadilla a una pierna, ayudándote con algo firme para el equilibrio."],
+  core:[
+    "Apoyado en antebrazos y rodillas, cuerpo recto. Apretá el abdomen.",
+    "Antebrazos y punta de pies, cuerpo como tabla. No hundas la cadera.",
+    "Desde la plancha, levantá un brazo o una pierna sin torcer el cuerpo.",
+    "De costado, apoyado en un antebrazo, cuerpo recto y cadera arriba.",
+    "Boca arriba, subí las piernas rectas y bajá sin tocar el piso."],
+  bisagra:[
+    "Boca arriba, rodillas dobladas. Subí la cadera apretando los glúteos.",
+    "Igual pero aguantá 2 segundos arriba en cada repetición.",
+    "Arriba en el puente, levantá una rodilla por vez, como marchando.",
+    "Una pierna estirada: subí la cadera empujando solo con la otra.",
+    "Parado en una pierna, incliná el tronco al frente estirando la otra atrás."]
+};
 
 const STORE_KEY = "roots_calistenia_v2";
 const CFG_DEFAULT = {prep:10, work:60, rest:20, sound:true};
@@ -435,6 +495,7 @@ function renderExercises(){
         <div class="ladder">
           <select id="var-${ex.id}" onchange="changeVar('${ex.id}')">${opts}</select>
           <div class="rung" id="rung-${ex.id}"></div>
+          <div class="exhow" id="how-${ex.id}"></div>
         </div>
         <div class="ex-actions">
           <button class="btn big" onclick="startTimer('${ex.id}')">▶ Arrancar</button>
@@ -442,7 +503,13 @@ function renderExercises(){
       </div>`;
     wrap.appendChild(card);
     updateRung(ex.id);
+    setHow(ex.id);
   });
+}
+function setHow(id){
+  const i = +document.getElementById('var-'+id).value;
+  const el = document.getElementById('how-'+id);
+  if(el) el.textContent = (HOWTO[id] && HOWTO[id][i]) || '';
 }
 function updateRung(id){
   const ex = PLAN.find(e=>e.id===id);
@@ -454,7 +521,7 @@ function updateRung(id){
 }
 function changeVar(id){
   db.variant[id] = +document.getElementById('var-'+id).value;
-  persist(); updateRung(id);
+  persist(); updateRung(id); setHow(id);
 }
 
 /* =====================================================================
@@ -475,6 +542,10 @@ function startTimer(exId){
   };
   if(db.cfg.prep<=0){ T.phase='work'; T.remaining=db.cfg.work; }
   document.getElementById('tExName').textContent = ex.pattern;
+  const vIdx = +document.getElementById('var-'+exId).value;
+  document.getElementById('tFig').innerHTML = FIGURE[exId] || '';
+  document.getElementById('tGuideName').textContent = ex.variants[vIdx];
+  document.getElementById('tGuideHow').textContent = (HOWTO[exId] && HOWTO[exId][vIdx]) || '';
   const tm = document.getElementById('timer');
   tm.classList.add('show');
   paintTimer();
@@ -707,6 +778,11 @@ function toast(msg){
   t.textContent=msg; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2000);
 }
+
+/* Si te vas de la app (cambiar música, responder un mensaje…), el reloj se pausa solo */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && T && !T.paused){ togglePause(); }
+});
 
 document.getElementById('codeInput').focus();
 </script>
