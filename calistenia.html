@@ -228,6 +228,27 @@ header.top{padding:22px 0 16px;border-bottom:1px solid var(--line);
   margin-top:7px;line-height:1.45}
 .exhow{font-size:15px;color:var(--muted);font-style:italic;margin-top:8px;line-height:1.45}
 
+.day-tabs{display:flex;gap:8px;margin:2px 0 4px}
+.day-tab{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);
+  padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;
+  text-align:center;font-family:var(--body)}
+.day-tab .dt-k{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.05em;text-transform:uppercase;line-height:1}
+.day-tab .dt-n{font-size:12px;line-height:1.2;font-style:italic}
+.day-tab.on{border-color:var(--green);color:var(--ink);background:var(--panel-2)}
+.day-tab.on .dt-k{color:var(--green)}
+
+.foodfield{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  font-family:var(--body);font-size:17px;padding:13px 14px;outline:none;resize:vertical;
+  min-height:72px;font-style:italic;line-height:1.5}
+.foodfield:focus{border-color:var(--green)}
+
+.log-food{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
+  font-style:italic;color:var(--muted);font-size:15px;line-height:1.55}
+.log-food b{font-family:var(--display);font-weight:500;font-style:normal;text-transform:uppercase;
+  letter-spacing:.06em;font-size:12px;color:var(--yellow);display:block;margin-bottom:3px}
+.log-day{color:var(--green);font-family:var(--display);font-weight:400;font-size:13px;
+  text-transform:uppercase;letter-spacing:.06em}
+
 @media (max-width:400px){
   body{font-size:18px}
   .top .brand{font-size:30px}
@@ -265,12 +286,17 @@ header.top{padding:22px 0 16px;border-bottom:1px solid var(--line);
     <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Sesiones</div></div>
     <div class="stat"><div class="n y" id="stWeek">0</div><div class="l">Esta semana</div></div>
     <div class="stat"><div class="n r" id="stStreak">0</div><div class="l">Racha</div></div>
+    <div class="stat"><div class="n" id="stMin">0</div><div class="l">Min total</div></div>
   </div>
 
   <div class="eyebrow">Entrenamiento de hoy</div>
-  <p class="hint">Tocá <b style="color:var(--green)">Arrancar</b> en un ejercicio: el reloj te lleva por prepará → ejercicio → descanso, y cuenta cada ronda. Al final, guardá la sesión.</p>
+  <div class="day-tabs" id="dayTabs"></div>
+  <p class="hint">Elegí el día del plan, tocá <b style="color:var(--green)">Arrancar</b> en un ejercicio y el reloj te lleva por prepará → ejercicio → descanso, contando cada ronda. Al final, guardá la sesión.</p>
 
   <div id="exercises"></div>
+
+  <div class="eyebrow">Comida del día</div>
+  <textarea class="foodfield" id="foodField" placeholder="Anotá lo que comiste hoy (opcional). Sirve para ver qué te cae mejor al entrenar." oninput="onFoodInput()"></textarea>
 
   <div class="save-row">
     <button class="btn big" onclick="saveSession()">Guardar sesión</button>
@@ -418,16 +444,26 @@ const HOWTO = {
     "Parado en una pierna, incliná el tronco al frente estirando la otra atrás."]
 };
 
+/* ---- Lookup y plan por día ---- */
+const BY_ID = Object.fromEntries(PLAN.map(p=>[p.id,p]));
+const DAYS = [
+  {key:'A', name:'Día A · Completo',            focus:'Todo el cuerpo',   ex:['empuje','traccion','piernas','core','bisagra']},
+  {key:'B', name:'Día B · Empuje + piernas',    focus:'Empuje y piernas', ex:['empuje','piernas','core','bisagra']},
+  {key:'C', name:'Día C · Tracción + piernas',  focus:'Espalda y piernas',ex:['traccion','piernas','core','bisagra']}
+];
+
 const STORE_KEY = "roots_calistenia_v2";
 const CFG_DEFAULT = {prep:10, work:60, rest:20, sound:true};
 let db = load();
-let today = {};   // {exId: {rounds}}
+let today = {};      // {exId:{rounds,secs}}
+let curDay = 'A';    // día del plan seleccionado
+let todayFood = '';  // comida del día (borrador)
 
 function load(){
   try{
     const d = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
-    return {sessions:d.sessions||[], variant:d.variant||{}, draft:d.draft||{}, cfg:Object.assign({},CFG_DEFAULT,d.cfg||{})};
-  }catch(e){ return {sessions:[], variant:{}, draft:{}, cfg:Object.assign({},CFG_DEFAULT)}; }
+    return {sessions:d.sessions||[], variant:d.variant||{}, draft:d.draft||{}, draftFood:d.draftFood||'', lastDay:d.lastDay||'A', cfg:Object.assign({},CFG_DEFAULT,d.cfg||{})};
+  }catch(e){ return {sessions:[], variant:{}, draft:{}, draftFood:'', lastDay:'A', cfg:Object.assign({},CFG_DEFAULT)}; }
 }
 function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
 
@@ -447,14 +483,38 @@ function lock(){ location.reload(); }
 
 function boot(){
   const draft = db.draft || {};
-  PLAN.forEach(ex=>{ today[ex.id] = {rounds: (draft[ex.id] && draft[ex.id].rounds) || 0}; });
-  renderExercises(); renderStats(); renderHistory();
+  PLAN.forEach(ex=>{ today[ex.id] = {
+    rounds:(draft[ex.id] && draft[ex.id].rounds) || 0,
+    secs:(draft[ex.id] && draft[ex.id].secs) || 0
+  }; });
+  todayFood = db.draftFood || '';
+  curDay = db.lastDay || 'A';
+  renderDayTabs(); renderExercises(); renderStats(); renderHistory();
+  const ff=document.getElementById('foodField'); if(ff) ff.value=todayFood;
 }
 /* Guarda el progreso de hoy sin cerrarlo, para no perder nada si cerrás la web */
 function saveDraft(){
   const d={};
-  PLAN.forEach(ex=>{ if(today[ex.id].rounds>0) d[ex.id]={rounds:today[ex.id].rounds}; });
-  db.draft=d; persist();
+  PLAN.forEach(ex=>{ if(today[ex.id].rounds>0 || today[ex.id].secs>0)
+    d[ex.id]={rounds:today[ex.id].rounds, secs:today[ex.id].secs}; });
+  db.draft=d; db.draftFood=todayFood; db.lastDay=curDay; persist();
+}
+/* Tabs de día (A / B / C) */
+function renderDayTabs(){
+  const w=document.getElementById('dayTabs'); if(!w) return;
+  w.innerHTML='';
+  DAYS.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='day-tab'+(d.key===curDay?' on':'');
+    b.innerHTML=`<span class="dt-k">${d.key}</span><span class="dt-n">${d.focus}</span>`;
+    b.onclick=()=>{ curDay=d.key; db.lastDay=curDay; persist(); renderDayTabs(); renderExercises(); };
+    w.appendChild(b);
+  });
+}
+/* Comida del día */
+function onFoodInput(){
+  todayFood = document.getElementById('foodField').value;
+  db.draftFood = todayFood; db.lastDay = curDay; persist();
 }
 
 /* ---- Cards ---- */
@@ -474,7 +534,9 @@ function currentVariantIdx(ex){
 function renderExercises(){
   const wrap = document.getElementById('exercises');
   wrap.innerHTML='';
-  PLAN.forEach(ex=>{
+  const day = DAYS.find(d=>d.key===curDay) || DAYS[0];
+  day.ex.forEach(exId=>{
+    const ex = BY_ID[exId];
     const vIdx = currentVariantIdx(ex);
     const opts = ex.variants.map((v,i)=>`<option value="${i}" ${i===vIdx?'selected':''}>Escalón ${i+1} — ${v}</option>`).join('');
     const last = lastFor(ex.id);
@@ -537,6 +599,8 @@ function startTimer(exId){
     phase:'prep',              // prep | work | rest
     remaining: db.cfg.prep>0 ? db.cfg.prep : db.cfg.work,
     rounds: today[exId].rounds,
+    secs: today[exId].secs,    // segundos de ejercicio acumulados
+    curWork: db.cfg.work,
     paused:false,
     lastTick: Date.now()
   };
@@ -571,13 +635,13 @@ function tick(){
 
 function nextPhase(){
   if(T.phase==='prep'){
-    T.phase='work'; T.remaining=db.cfg.work; sndStart();
+    T.phase='work'; T.remaining=db.cfg.work; T.curWork=db.cfg.work; sndStart();
   } else if(T.phase==='work'){
-    T.rounds++;                         // ¡ronda completada!
+    T.rounds++; T.secs += T.curWork;    // ¡ronda completada! + suma los segundos
     if(db.cfg.rest>0){ T.phase='rest'; T.remaining=db.cfg.rest; sndRest(); }
-    else { T.phase='work'; T.remaining=db.cfg.work; sndStart(); }
+    else { T.phase='work'; T.remaining=db.cfg.work; T.curWork=db.cfg.work; sndStart(); }
   } else { // rest
-    T.phase='work'; T.remaining=db.cfg.work; sndStart();
+    T.phase='work'; T.remaining=db.cfg.work; T.curWork=db.cfg.work; sndStart();
   }
 }
 
@@ -613,13 +677,14 @@ function finishTimer(){
   if(!T) return;
   clearInterval(T.interval);
   today[T.exId].rounds = T.rounds;      // guarda las rondas hechas
+  today[T.exId].secs   = T.secs;        // guarda los segundos de ejercicio
   saveDraft();                          // persiste el progreso de hoy (no se pierde)
   releaseWake();
   document.getElementById('timer').classList.remove('show');
-  const r = T.rounds; const nm = T.exName;
+  const r = T.rounds, nm = T.exName, mins = Math.round(T.secs/60);
   T = null;
   renderExercises();
-  if(r>0) toast(`${nm}: ${r} ${r===1?'ronda':'rondas'} ✓`);
+  if(r>0) toast(`${nm}: ${r} ${r===1?'ronda':'rondas'} · ${mins} min ✓`);
 }
 
 /* ---- Sonidos (Web Audio) ---- */
@@ -655,26 +720,30 @@ function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } 
    ===================================================================== */
 function saveSession(){
   const entries=[]; let any=false;
-  PLAN.forEach(ex=>{
-    const rounds = today[ex.id].rounds;
-    const variant = ex.variants[+document.getElementById('var-'+ex.id).value];
+  PLAN.forEach(ex=>{                      // guarda todo lo hecho hoy, aunque hayas cambiado de día
+    const rounds = today[ex.id].rounds, secs = today[ex.id].secs;
     if(rounds>0){
+      const sel = document.getElementById('var-'+ex.id);
+      const vi = sel ? +sel.value : currentVariantIdx(ex);
       any=true;
-      entries.push({id:ex.id, pattern:ex.pattern, variant, rounds});
+      entries.push({id:ex.id, pattern:ex.pattern, variant:ex.variants[vi], rounds, secs});
     }
   });
   if(!any){ toast("Hacé al menos una ronda"); return; }
+  const day = DAYS.find(d=>d.key===curDay) || DAYS[0];
+  const food = (document.getElementById('foodField').value||'').trim();
   const now=new Date();
-  db.sessions.push({ ts:now.getTime(), entries });
-  db.draft={};              // la sesión ya quedó guardada en el historial
+  db.sessions.push({ ts:now.getTime(), day:day.key, dayName:day.name, entries, food });
+  db.draft={}; db.draftFood='';            // la sesión ya quedó guardada en el historial
   persist();
   boot();
-  toast("Sesión guardada ✓");
+  const mins=Math.round(entries.reduce((a,e)=>a+(e.secs||0),0)/60);
+  toast(`Sesión guardada · ${mins} min ✓`);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function clearToday(){
-  if(!confirm('¿Limpiar las rondas de hoy sin guardar? (El historial NO se toca.)')) return;
-  db.draft={}; persist(); boot();
+  if(!confirm('¿Limpiar las rondas y la comida de hoy sin guardar? (El historial NO se toca.)')) return;
+  db.draft={}; db.draftFood=''; persist(); boot();
 }
 
 /* ---- Stats ---- */
@@ -691,6 +760,8 @@ function renderStats(){
   if(!weeks.has(cur)) cur-=WEEK;
   while(weeks.has(cur)){ streak++; cur-=WEEK; }
   document.getElementById('stStreak').textContent = streak;
+  const totalMin = Math.round(db.sessions.reduce((a,s)=>a+s.entries.reduce((b,e)=>b+(e.secs||0),0),0)/60);
+  document.getElementById('stMin').textContent = totalMin;
 }
 
 /* ---- Historial con fecha y hora ---- */
@@ -701,6 +772,7 @@ function fmtDate(ts){
   const hh=String(d.getHours()).padStart(2,'0'), mn=String(d.getMinutes()).padStart(2,'0');
   return {dow:DOW[d.getDay()], date:`${dd}/${mm}/${yy}`, time:`${hh}:${mn}`};
 }
+function esc(t){ return (t||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function renderHistory(){
   const wrap=document.getElementById('history');
   if(db.sessions.length===0){
@@ -712,23 +784,27 @@ function renderHistory(){
     const realIdx=db.sessions.length-1-ri;
     const f=fmtDate(s.ts);
     const totalRounds=s.entries.reduce((a,e)=>a+(e.rounds||0),0);
+    const totalMin=Math.round(s.entries.reduce((a,e)=>a+(e.secs||0),0)/60);
+    const dayTxt = s.dayName ? `<span class="log-day">${esc(s.dayName)}</span> · ` : '';
     const rows=s.entries.map(e=>{
       return `<div class="log-row">
         <span class="ln">${e.pattern} <small>· ${e.variant}</small></span>
         <span class="lv">${e.rounds} <small>${e.rounds===1?'ronda':'rondas'}</small></span></div>`;
     }).join('');
+    const foodHtml = s.food ? `<div class="log-food"><b>Comida del día</b>${esc(s.food)}</div>` : '';
     const el=document.createElement('div');
     el.className='log';
     el.innerHTML=`
       <div class="log-head" onclick="toggleLog(this)">
         <div>
           <div class="log-date"><span class="dow">${f.dow}</span> ${f.date} · <span class="hs">${f.time}hs</span></div>
-          <div class="log-mini">${s.entries.length} ejercicios · ${totalRounds} rondas</div>
+          <div class="log-mini">${dayTxt}${s.entries.length} ejercicios · ${totalRounds} rondas · ${totalMin} min</div>
         </div>
         <span class="chev">▶</span>
       </div>
       <div class="log-body">
         ${rows}
+        ${foodHtml}
         <div style="margin-top:12px"><button class="btn red" onclick="delSession(${realIdx});event.stopPropagation()">Borrar sesión</button></div>
       </div>`;
     wrap.appendChild(el);
