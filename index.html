@@ -60,6 +60,39 @@ main{position:relative;z-index:5;padding:0 40px;}
 .hero-divider .d2{background:var(--yellow);}
 .hero-divider .d3{background:var(--red);}
 
+/* ─── BANNER EN REFORMA ─── */
+.reform-banner{
+  position:relative;
+  max-width:640px;margin:40px auto 0;
+  display:flex;align-items:center;gap:20px;
+  background:rgba(245,194,0,0.05);
+  border:1px solid rgba(245,194,0,0.26);
+  border-radius:16px;
+  padding:24px 28px 24px 30px;
+  text-align:left;
+  overflow:hidden;
+}
+/* Lomo tricolor a la izquierda */
+.reform-banner::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,var(--green) 0 33%,var(--yellow) 33% 66%,var(--red) 66% 100%);
+}
+.reform-icon{font-size:30px;line-height:1;flex-shrink:0;}
+.reform-body{flex:1;}
+.reform-title{
+  font-family:'Oswald',sans-serif;
+  font-size:14px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--yellow);margin-bottom:7px;
+}
+.reform-desc{
+  font-family:'EB Garamond',serif;
+  font-size:16px;color:var(--white);line-height:1.55;
+}
+@media(max-width:600px){
+  .reform-banner{flex-direction:column;text-align:center;gap:12px;padding:22px 20px;}
+  .reform-banner::before{width:100%;height:5px;bottom:auto;}
+}
+
 /* ─── SECTION LABELS ─── */
 .section-header{
   display:flex;align-items:center;gap:16px;
@@ -221,15 +254,6 @@ footer p{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
 
 <div class="bg"></div>
 
-<nav>
-  <div class="nav-logo">
-    <img src="data:image/png;base64,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" alt="Roots Portal" />
-    <div class="nav-brand">
-      <span>ROOTS PORTAL</span>
-      <span>Creatividad · Tecnología · Naturaleza</span>
-    </div>
-  </div>
-</nav>
 
 <main>
 
@@ -245,180 +269,22 @@ footer p{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
       <span class="d2"></span>
       <span class="d3"></span>
     </div>
+
+    <!-- BANNER: sitio en reforma -->
+    <div class="reform-banner">
+      <span class="reform-icon">🚧</span>
+      <div class="reform-body">
+        <p class="reform-title">Sitio en reforma</p>
+        <p class="reform-desc">Estamos reestructurando todo el Portal. Muy pronto vas a disfrutar de las nuevas herramientas del Portal Roots. Gracias por la paciencia. 🌱</p>
+      </div>
+    </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       PARTE A — ÁREA PRIVADA (Sr. M)
-  ════════════════════════════════════════════════════════════════ -->
-  <div class="section-header">
-    <span class="section-badge private">🔒 Área privada</span>
-    <div class="section-line"></div>
-  </div>
-  <p class="section-desc">Solo para vos — herramientas internas de Roots Studio.</p>
-
-  <div class="grid grid-4">
-
-    <!-- Admin -->
-    <a class="card private" href="v4-admin.html">
-      <div class="card-icon">⚙️</div>
-      <div class="card-name">Admin</div>
-      <div class="card-desc">Panel de control Valentina V4 — clientes, memoria, conversaciones.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-    <!-- Monitor -->
-    <a class="card private" href="monitor.html">
-      <div class="card-icon">📊</div>
-      <div class="card-name">Monitor</div>
-      <div class="card-desc">Trading en tiempo real — BTC, DOGE, LINK y portfolio.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-    <!-- Valentina -->
-    <a class="card private" href="https://v4-001.rootsstudioar.workers.dev" target="_blank">
-      <div class="card-icon">💬</div>
-      <div class="card-name">Valentina</div>
-      <div class="card-desc">Tu instancia personal de Valentina V4 — acceso directo.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-    <!-- Génesis -->
-    <a class="card private" href="https://genesis-web.rootsstudioar.workers.dev" target="_blank">
-      <div class="card-icon">🌱</div>
-      <div class="card-name">Génesis</div>
-      <div class="card-desc">Asistente personal de IA — voz, imagen y memoria persistente.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-  </div>
-
-  <!-- Segunda fila área privada: DJ Roots interno -->
-  <div class="grid grid-4">
-    <a class="card private" href="dj-roots.html">
-      <div class="card-icon">🎧</div>
-      <div class="card-name">DJ Roots</div>
-      <div class="card-desc">Herramienta DJ interna — versión completa de uso personal.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-    <!-- Preproducción -->
-    <a class="card private" href="story.html">
-      <div class="card-icon">🎬</div>
-      <div class="card-name">Preproducción</div>
-      <div class="card-desc">Storyboard y materiales de "Desde el Bosque".</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-
-    <!-- Calistenia -->
-    <a class="card private" href="calistenia.html">
-      <div class="card-icon">💪</div>
-      <div class="card-name">Calistenia</div>
-      <div class="card-desc">Tracker de entrenamiento — plan full body, progresión y registro.</div>
-      <div class="card-arrow">Abrir <span>→</span></div>
-    </a>
-  </div>
-
-
-  <!-- ══════════════════════════════════════════════════════════════
-       PARTE B — VIDRIERA PÚBLICA
-  ════════════════════════════════════════════════════════════════ -->
-  <div class="section-header" style="margin-top:56px;">
-    <span class="section-badge public">🌐 Proyectos</span>
-    <div class="section-line"></div>
-  </div>
-  <p class="section-desc">Productos disponibles — demo, info y venta.</p>
-
-  <div class="grid grid-2">
-
-    <!-- DJ Roots (prueba/venta) -->
-    <a class="card public" href="dj-roots-prueba.html">
-      <div class="card-icon">🎚️</div>
-      <div class="card-name">DJ Roots</div>
-      <div class="card-desc">Herramienta DJ para mezclas roots & reggae. Demo interactivo — probá antes de comprar.</div>
-      <div class="card-arrow">Ver demo <span>→</span></div>
-    </a>
-
-    <!-- Bot Trade -->
-    <a class="card public" href="bot-trade.html">
-      <div class="card-icon">🤖</div>
-      <div class="card-name">Bot Trade</div>
-      <div class="card-desc">Monitor y análisis de trading automatizado. BTC, DOGE, LINK en tiempo real.</div>
-      <div class="card-arrow">Ver proyecto <span>→</span></div>
-    </a>
-
-  </div>
-
-  <div class="grid grid-2">
-
-    <!-- Cine (card ancha con sub-items) -->
-    <div class="card public card-wide" onclick="window.location='produccion.html'">
-      <div class="card-icon">🎥</div>
-      <div class="card-name">Cine — Roots Films</div>
-      <div class="card-desc">Producción audiovisual independiente. Guiones, preproducción y proyecto de cortometraje.</div>
-      <div class="cine-subs">
-        <span class="cine-tag">Guión literario</span>
-        <span class="cine-tag">Guión técnico</span>
-        <span class="cine-tag">Agenda filmación</span>
-        <span class="cine-tag wip">Storyboard ↗</span>
-      </div>
-      <div class="card-arrow">Ver todo <span>→</span></div>
-    </div>
-
-  </div>
-
-  <div class="grid grid-2">
-
-    <!-- Agenda (venta) -->
-    <a class="card public" href="https://agenda-8j5.pages.dev" target="_blank">
-      <div class="card-icon">📅</div>
-      <div class="card-name">Agenda Roots</div>
-      <div class="card-desc">Agenda personal con IA integrada, Mundial 2026 y gestión de eventos.</div>
-      <div class="card-arrow">Ver proyecto <span>→</span></div>
-    </a>
-
-    <!-- Mundial 2026 -->
-    <a class="card public" href="mundial.html">
-      <div class="card-icon">⚽</div>
-      <div class="card-name">Mundial 2026</div>
-      <div class="card-desc">Fixture, resultados y posiciones del Mundial USA·Canadá·México en tiempo real.</div>
-      <div class="card-arrow">Ver fixture <span>→</span></div>
-    </a>
-
-  </div>
-
 </main>
-
-<!-- MODAL VIP -->
-<div class="modal-bg" id="vip-modal">
-  <div class="modal-box">
-    <div class="m-icon">🔐</div>
-    <p class="m-eye">Acceso exclusivo</p>
-    <p class="m-title">Casa Roots</p>
-    <input type="password" class="m-input" placeholder="Contraseña" id="vip-pass"/>
-    <button class="m-btn" onclick="checkVIP()">Ingresar</button>
-    <p class="m-err" id="vip-err">Clave incorrecta.</p>
-    <p class="m-cancel" onclick="closeModal()">Cancelar</p>
-  </div>
-</div>
 
 <footer>
   <p>© 2025 Roots Studio · Buenos Aires · <a href="mailto:sr.eme.roots@gmail.com" style="color:var(--green);text-decoration:none;">sr.eme.roots@gmail.com</a></p>
 </footer>
 
-<script>
-function checkVIP(){
-  const p=document.getElementById('vip-pass').value;
-  const e=document.getElementById('vip-err');
-  if(p==='Caoclub77'){
-    e.style.display='none';
-    document.getElementById('vip-modal').style.display='none';
-    window.location.href='produccion.html';
-  } else { e.style.display='block'; }
-}
-document.getElementById('vip-pass').addEventListener('keydown',ev=>{if(ev.key==='Enter')checkVIP();});
-function closeModal(){
-  document.getElementById('vip-modal').style.display='none';
-}
-</script>
 </body>
 </html>
