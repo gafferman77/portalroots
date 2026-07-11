@@ -277,35 +277,6 @@
   input[type=range]::-webkit-slider-thumb:hover { background: var(--text); }
   .vol-val { font-size: 10px; color: var(--text-dim); width: 28px; text-align: right; }
 
-  /* EQ */
-  .eq-zone {
-    padding: 8px 14px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .eq-label-row { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 2px; letter-spacing: 0.05em; }
-  .eq-sliders { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
-  .eq-band {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    height: 100%;
-  }
-  .eq-band input[type=range] {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    width: 3px;
-    height: 60px;
-    flex: 1;
-  }
-  .eq-band input[type=range]::-webkit-slider-thumb { width: 18px; height: 8px; }
-  .eq-band-label { font-size: 9px; color: var(--text-muted); }
-  .eq-val { font-size: 9px; color: var(--text-dim); }
-
   /* CROSSFADER CENTER */
   .center-panel {
     background: #0f0e0d;
@@ -405,6 +376,109 @@
   .modal input:focus { border-color: var(--brown); }
 
   .loading { font-size: 10px; color: var(--text-muted); padding: 8px 14px; }
+
+  /* LOCAL FILE */
+  .btn.file-btn { padding: 7px 11px; background: var(--brown-dim); border-color: var(--brown); color: var(--brown2); font-weight: bold; }
+  .btn.file-btn:hover { background: var(--brown); color: #fff; }
+  .drop-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 0 12px;
+    pointer-events: none;
+  }
+  .drop-hint b { color: var(--brown2); font-weight: bold; }
+
+  /* REGISTRO (reemplaza al EQ) */
+  .registro-zone {
+    padding: 8px 14px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+  }
+  .registro-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+  .registro-clear { cursor: pointer; }
+  .registro-clear:hover { color: var(--red); }
+  .registro-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+  .registro-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 4px;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .registro-item:hover { background: var(--surface2); color: var(--text); }
+  .registro-num {
+    font-family: var(--display);
+    font-size: 14px;
+    color: #c8a020;
+    min-width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .registro-ico { flex-shrink: 0; font-size: 10px; color: var(--brown2); width: 12px; text-align: center; }
+  .registro-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .registro-time { font-size: 9px; color: var(--text-muted); flex-shrink: 0; }
+  .registro-empty { font-size: 10px; color: var(--text-muted); padding: 8px 4px; }
+  .local-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    background: linear-gradient(135deg, #0a0a0a 0%, #141312 100%);
+  }
+  .local-preview .lp-icon {
+    font-size: 28px;
+    color: var(--brown2);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .local-preview .lp-name {
+    font-size: 11px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .local-preview .lp-tag {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+  }
+  .deck.drag-over { outline: 1px dashed var(--brown2); outline-offset: -3px; background: #191b18; }
+  .cortina-panel.drag-over { outline: 1px dashed var(--brown2); outline-offset: -3px; }
 </style>
 </head>
 <body>
@@ -438,6 +512,8 @@
     <div class="search-zone">
       <input class="search-input" id="searchA" placeholder="buscar track..." onkeypress="if(event.key==='Enter') search('A')">
       <button class="btn" onclick="search('A')">BUSCAR</button>
+      <button class="btn file-btn" onclick="document.getElementById('fileA').click()" title="Cargar desde la compu">⭱ PC</button>
+      <input type="file" id="fileA" accept="audio/*" style="display:none" onchange="handleLocalFile('A', this.files[0]); this.value='';">
     </div>
     <div class="results" id="resultsA"></div>
     <div class="now-playing" id="npA">
@@ -445,7 +521,7 @@
       <div class="np-sub" id="npSubA">cargar track para comenzar</div>
     </div>
     <div id="playerA" class="yt-player"></div>
-    <div class="yt-preview" id="previewA"><div class="yt-preview-overlay"></div></div>
+    <div class="yt-preview" id="previewA"><div class="drop-hint">⭱ Arrastrá un tema acá o tocá <b>⭱ PC</b></div><div class="yt-preview-overlay"></div></div>
     <div class="progress-zone">
       <div class="progress-bar-wrap" onclick="seekDeck('A', event)">
         <div class="progress-bar-fill" id="progressA"></div>
@@ -468,37 +544,13 @@
       <div class="slider-wrap"><input type="range" min="0" max="100" value="80" oninput="setVol('A', this.value)" id="volA"></div>
       <span class="vol-val" id="volValA">80</span>
     </div>
-    <div class="eq-zone">
-      <div class="eq-label-row">
-        <span>EQ</span>
-        <span style="cursor:pointer;color:var(--text-muted)" onclick="resetEq('A')">RESET</span>
+    <div class="registro-zone">
+      <div class="registro-head">
+        <span>REGISTRO · DECK A</span>
+        <span class="registro-clear" onclick="clearHistory('A')">LIMPIAR</span>
       </div>
-      <div class="eq-sliders">
-        <div class="eq-band">
-          <span class="eq-val" id="eqValA0">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',0,this.value)">
-          <span class="eq-band-label">32</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValA1">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',1,this.value)">
-          <span class="eq-band-label">250</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValA2">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',2,this.value)">
-          <span class="eq-band-label">1K</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValA3">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',3,this.value)">
-          <span class="eq-band-label">4K</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValA4">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('A',4,this.value)">
-          <span class="eq-band-label">16K</span>
-        </div>
+      <div class="registro-list" id="registroA">
+        <div class="registro-empty">— sin temas aún —</div>
       </div>
     </div>
   </div>
@@ -561,6 +613,8 @@
     <div class="search-zone">
       <input class="search-input" id="searchB" placeholder="buscar track..." onkeypress="if(event.key==='Enter') search('B')">
       <button class="btn" onclick="search('B')">BUSCAR</button>
+      <button class="btn file-btn" onclick="document.getElementById('fileB').click()" title="Cargar desde la compu">⭱ PC</button>
+      <input type="file" id="fileB" accept="audio/*" style="display:none" onchange="handleLocalFile('B', this.files[0]); this.value='';">
     </div>
     <div class="results" id="resultsB"></div>
     <div class="now-playing" id="npB">
@@ -568,7 +622,7 @@
       <div class="np-sub" id="npSubB">cargar track para comenzar</div>
     </div>
     <div id="playerB" class="yt-player"></div>
-    <div class="yt-preview" id="previewB"><div class="yt-preview-overlay"></div></div>
+    <div class="yt-preview" id="previewB"><div class="drop-hint">⭱ Arrastrá un tema acá o tocá <b>⭱ PC</b></div><div class="yt-preview-overlay"></div></div>
     <div class="progress-zone">
       <div class="progress-bar-wrap" onclick="seekDeck('B', event)">
         <div class="progress-bar-fill" id="progressB"></div>
@@ -591,37 +645,13 @@
       <div class="slider-wrap"><input type="range" min="0" max="100" value="80" oninput="setVol('B', this.value)" id="volB"></div>
       <span class="vol-val" id="volValB">80</span>
     </div>
-    <div class="eq-zone">
-      <div class="eq-label-row">
-        <span>EQ</span>
-        <span style="cursor:pointer;color:var(--text-muted)" onclick="resetEq('B')">RESET</span>
+    <div class="registro-zone">
+      <div class="registro-head">
+        <span>REGISTRO · DECK B</span>
+        <span class="registro-clear" onclick="clearHistory('B')">LIMPIAR</span>
       </div>
-      <div class="eq-sliders">
-        <div class="eq-band">
-          <span class="eq-val" id="eqValB0">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',0,this.value)">
-          <span class="eq-band-label">32</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValB1">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',1,this.value)">
-          <span class="eq-band-label">250</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValB2">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',2,this.value)">
-          <span class="eq-band-label">1K</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValB3">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',3,this.value)">
-          <span class="eq-band-label">4K</span>
-        </div>
-        <div class="eq-band">
-          <span class="eq-val" id="eqValB4">0</span>
-          <input type="range" min="-12" max="12" value="0" orient="vertical" oninput="setEq('B',4,this.value)">
-          <span class="eq-band-label">16K</span>
-        </div>
+      <div class="registro-list" id="registroB">
+        <div class="registro-empty">— sin temas aún —</div>
       </div>
     </div>
   </div>
@@ -632,6 +662,8 @@
     <div class="cortina-search">
       <input class="search-input" id="searchC" placeholder="buscar cortina..." onkeypress="if(event.key==='Enter') search('C')" style="max-width:280px">
       <button class="btn" onclick="search('C')">BUSCAR</button>
+      <button class="btn file-btn" onclick="document.getElementById('fileC').click()" title="Cargar desde la compu">⭱ PC</button>
+      <input type="file" id="fileC" accept="audio/*" style="display:none" onchange="handleLocalFile('C', this.files[0]); this.value='';">
     </div>
     <div id="playerC" class="yt-player"></div>
     <div class="results" id="resultsC" style="max-height:60px;min-width:200px"></div>
@@ -650,6 +682,10 @@
 
 <script>
 let API_KEY = 'AIzaSyDWTnpLYZw5ybQNFpJAyVQt6C8vRPR2UZU';
+// Si ponés acá la URL del Worker, la búsqueda pasa por el proxy (funciona en file:// y sin exponer la key).
+// Ejemplo: 'https://dj-roots-search.rootsstudioar.workers.dev'
+// Dejalo en '' para usar la API de YouTube directo (como antes).
+let SEARCH_ENDPOINT = '';
 let fadeSpeed = 'fast';
 
 function setFadeSpeed(speed) {
@@ -691,6 +727,7 @@ let crossfade = 50;
 let masterVol = 80;
 let tempos = { A: 128, B: 128 };
 let cuePoints = { A: 0, B: 0 };
+let history = { A: [], B: [] };
 let eqNodes = { A: [], B: [] };
 let audioCtx = null;
 let progressInterval = null;
@@ -772,13 +809,22 @@ function createPlayer(deck, videoId) {
 // SEARCH
 async function search(deck) {
   const q = document.getElementById('search' + deck).value.trim();
-  if (!q || !API_KEY) return;
+  if (!q) return;
+  if (!SEARCH_ENDPOINT && !API_KEY) return;
   const res = document.getElementById('results' + deck);
   res.innerHTML = '<div class="loading">buscando...</div>';
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&videoCategoryId=10&maxResults=6&key=${API_KEY}`;
+    const url = SEARCH_ENDPOINT
+      ? `${SEARCH_ENDPOINT}?q=${encodeURIComponent(q)}`
+      : `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&videoCategoryId=10&maxResults=6&key=${API_KEY}`;
     const r = await fetch(url);
     const data = await r.json();
+    if (data.error) {
+      const msg = (data.error && data.error.message) || 'error de API';
+      res.innerHTML = '<div class="loading">' + msg + '</div>';
+      console.error('YouTube API error:', data.error);
+      return;
+    }
     if (!data.items || data.items.length === 0) { res.innerHTML = '<div class="loading">sin resultados</div>'; return; }
     res.innerHTML = '';
     data.items.forEach(item => {
@@ -794,7 +840,7 @@ async function search(deck) {
   } catch(e) { res.innerHTML = '<div class="loading">error de búsqueda</div>'; }
 }
 
-function loadTrack(deck, videoId, title, channel) {
+function loadTrack(deck, videoId, title, channel, fromHistory) {
   if (deck === 'C') {
     document.getElementById('npC').textContent = title;
   } else {
@@ -805,7 +851,196 @@ function loadTrack(deck, videoId, title, channel) {
   createPlayer(deck, videoId);
   playing[deck] = false;
   updatePlayBtn(deck);
+  if (!fromHistory) addToHistory(deck, { type: 'yt', title: title, videoId: videoId, channel: channel });
 }
+
+// ============ ARCHIVOS LOCALES (desde la compu) ============
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// ============ REGISTRO DE TEMAS ============
+function nowHM() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function addToHistory(deck, entry) {
+  if (deck !== 'A' && deck !== 'B') return;
+  entry.time = nowHM();
+  history[deck].push(entry);
+  renderHistory(deck);
+}
+
+function renderHistory(deck) {
+  const list = document.getElementById('registro' + deck);
+  if (!list) return;
+  if (!history[deck] || history[deck].length === 0) {
+    list.innerHTML = '<div class="registro-empty">— sin temas aún —</div>';
+    return;
+  }
+  list.innerHTML = '';
+  history[deck].forEach((e, i) => {
+    const div = document.createElement('div');
+    div.className = 'registro-item';
+    div.title = 'Volver a cargar en Deck ' + deck;
+    div.innerHTML =
+      '<span class="registro-num">' + (i + 1) + '</span>' +
+      '<span class="registro-ico">' + (e.type === 'local' ? '♪' : '▶') + '</span>' +
+      '<span class="registro-title">' + escapeHtml(e.title) + '</span>' +
+      '<span class="registro-time">' + e.time + '</span>';
+    div.onclick = () => replayHistory(deck, i);
+    list.appendChild(div);
+  });
+  list.scrollTop = list.scrollHeight;
+}
+
+function replayHistory(deck, i) {
+  const e = history[deck][i];
+  if (!e) return;
+  if (e.type === 'local' && e.file) {
+    loadLocalFile(deck, e.file, true);
+  } else if (e.type === 'yt' && e.videoId) {
+    loadTrack(deck, e.videoId, e.title, e.channel || '', true);
+  }
+}
+
+function clearHistory(deck) {
+  history[deck] = [];
+  renderHistory(deck);
+}
+
+function handleLocalFile(deck, file) {
+  if (!file) return;
+  if (!file.type.startsWith('audio/') && !/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i.test(file.name)) {
+    alert('El archivo no parece ser de audio.');
+    return;
+  }
+  loadLocalFile(deck, file);
+}
+
+function loadLocalFile(deck, file, fromHistory) {
+  const name = file.name.replace(/\.[^/.]+$/, '');
+  if (deck === 'C') {
+    document.getElementById('npC').textContent = '♪ ' + name;
+  } else {
+    document.getElementById('npTitle' + deck).textContent = name;
+    document.getElementById('npSub' + deck).textContent = 'archivo local · ' + file.name;
+    document.getElementById('results' + deck).innerHTML = '';
+    showLocalPreview(deck, name);
+  }
+  createLocalPlayer(deck, file);
+  playing[deck] = false;
+  updatePlayBtn(deck);
+  if (!fromHistory) addToHistory(deck, { type: 'local', title: name, file: file });
+}
+
+function showLocalPreview(deck, name) {
+  const previewEl = document.getElementById('preview' + deck);
+  if (!previewEl) return;
+  previewEl.innerHTML =
+    '<div class="local-preview">' +
+      '<span class="lp-icon">♪</span>' +
+      '<div style="overflow:hidden">' +
+        '<div class="lp-name">' + escapeHtml(name) + '</div>' +
+        '<div class="lp-tag">ARCHIVO LOCAL</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="yt-preview-overlay"></div>';
+}
+
+function createLocalPlayer(deck, file) {
+  // limpiar player anterior (YouTube o local)
+  if (players[deck]) {
+    try { players[deck].destroy(); } catch (e) {}
+    players[deck] = null;
+  }
+
+  const url = URL.createObjectURL(file);
+  const audio = new Audio();
+  audio.src = url;
+  audio.preload = 'auto';
+
+  // wrapper que imita la interfaz del reproductor de YouTube
+  const wrapper = {
+    _audio: audio,
+    _url: url,
+    _isLocal: true,
+    playVideo() { audio.play().catch(() => {}); },
+    pauseVideo() { audio.pause(); },
+    stopVideo() { audio.pause(); try { audio.currentTime = 0; } catch (e) {} },
+    getCurrentTime() { return audio.currentTime || 0; },
+    getDuration() { return isFinite(audio.duration) ? audio.duration : 0; },
+    seekTo(t) { try { audio.currentTime = t; } catch (e) {} },
+    setVolume(v) { audio.volume = Math.max(0, Math.min(1, v / 100)); },
+    getVolume() { return audio.volume * 100; },
+    setPlaybackRate(r) { audio.playbackRate = Math.max(0.25, Math.min(4, r)); },
+    getPlaybackRate() { return audio.playbackRate; },
+    destroy() {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      try { URL.revokeObjectURL(url); } catch (e) {}
+    }
+  };
+
+  audio.addEventListener('play', () => {
+    playing[deck] = true;
+    updatePlayBtn(deck);
+    startProgress();
+  });
+  audio.addEventListener('pause', () => {
+    playing[deck] = false;
+    updatePlayBtn(deck);
+  });
+  audio.addEventListener('ended', () => {
+    playing[deck] = false;
+    updatePlayBtn(deck);
+    if (looping[deck]) {
+      audio.currentTime = cuePoints[deck] || 0;
+      audio.play().catch(() => {});
+    } else if (deck !== 'C') {
+      document.getElementById('progress' + deck).style.width = '0%';
+    }
+  });
+  audio.addEventListener('loadedmetadata', () => {
+    applyVolume(deck);
+    generateWave(deck);
+    if (deck !== 'C') {
+      document.getElementById('dur' + deck).textContent = fmt(wrapper.getDuration());
+    }
+    const dot = document.getElementById('dot-' + deck.toLowerCase());
+    if (dot) dot.className = 'status-dot on';
+  });
+
+  players[deck] = wrapper;
+}
+
+// Arrastrar y soltar archivos sobre los decks
+function initDragDrop() {
+  const targets = [
+    { el: document.getElementById('deckA'), deck: 'A' },
+    { el: document.getElementById('deckB'), deck: 'B' },
+    { el: document.querySelector('.cortina-panel'), deck: 'C' }
+  ];
+  targets.forEach(({ el, deck }) => {
+    if (!el) return;
+    el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', (e) => {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleLocalFile(deck, file);
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initDragDrop);
+if (document.readyState !== 'loading') initDragDrop();
 
 // PLAYBACK
 function togglePlay(deck) {
