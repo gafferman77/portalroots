@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Evolución Biológica</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap');
+  :root {
+    --bg: #111010; --surface: #1a1917; --surface2: #222120; --surface3: #2a2826;
+    --border: #2e2c2a; --border2: #3a3835;
+    --text: #c8bfb0; --text-dim: #6b6560; --text-muted: #3a3835;
+    --green: #4a9a4a; --green-dim: #1a3d1a; --green-bright: #27ae60;
+    --red: #c0392b; --red-dim: #2a1010;
+    --yellow: #c8a020; --yellow-dim: #3d3010;
+    --mono: 'Share Tech Mono', monospace; --display: 'Bebas Neue', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); min-height: 100vh; }
+
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border); background: #0d0c0b;
+  }
+  .logo { font-family: var(--display); font-size: 26px; letter-spacing: 0.15em; color: var(--yellow); }
+  .logo span { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-left: 10px; letter-spacing: 0.08em; }
+  .hud { display: flex; gap: 20px; font-size: 11px; color: var(--text-dim); align-items: center; }
+  .hud-val { font-size: 15px; color: var(--yellow); font-family: var(--display); letter-spacing: 0.1em; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* PROGRESS */
+  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .progress-track { flex: 1; height: 4px; background: var(--surface3); border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--green); transition: width 0.4s; }
+  .progress-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+  /* ROUND BADGE */
+  .round-badge {
+    display: inline-block; font-size: 10px; letter-spacing: 0.12em;
+    color: var(--yellow); border: 1px solid var(--yellow-dim);
+    background: var(--yellow-dim); padding: 3px 10px; margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 22px 24px; margin-bottom: 18px;
+  }
+  .q-type { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .q-text { font-size: 14px; line-height: 1.65; color: var(--text); }
+  .q-text strong { color: var(--yellow); font-weight: normal; }
+
+  /* OPTIONS */
+  .options { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    padding: 11px 14px; cursor: pointer; transition: all 0.15s; font-size: 13px;
+  }
+  .opt:hover { background: var(--surface3); border-color: var(--green); color: var(--text); }
+  .opt-key {
+    min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border2); font-size: 11px; color: var(--text-dim);
+    flex-shrink: 0; margin-top: 0px;
+  }
+  .opt.selected { background: #1c2e1c; border-color: var(--green); }
+  .opt.selected .opt-key { background: var(--green); border-color: var(--green); color: #fff; }
+  .opt.correct { background: #0e2e16; border-color: var(--green-bright); }
+  .opt.correct .opt-key { background: var(--green-bright); border-color: var(--green-bright); color: #fff; }
+  .opt.wrong { background: var(--red-dim); border-color: var(--red); }
+  .opt.wrong .opt-key { background: var(--red); border-color: var(--red); color: #fff; }
+  .opt.disabled { cursor: default; pointer-events: none; }
+
+  /* FEEDBACK */
+  .feedback {
+    display: none; padding: 14px 18px; margin-top: 12px;
+    border-left: 3px solid var(--green); background: #0e1e0e;
+    font-size: 12px; line-height: 1.6; color: #8fca8f;
+  }
+  .feedback.wrong-fb { border-color: var(--red); background: #1e0e0e; color: #ca8f8f; }
+  .feedback.show { display: block; }
+
+  /* NAV */
+  .nav { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+  .btn {
+    background: var(--surface3); border: 1px solid var(--border2);
+    color: var(--text-dim); padding: 9px 20px; font-family: var(--mono);
+    font-size: 12px; cursor: pointer; letter-spacing: 0.05em; transition: all 0.15s;
+  }
+  .btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+  .btn.primary { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .btn.primary:hover { background: var(--green); color: #fff; }
+  .btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+  /* RESULTS SCREEN */
+  .results-screen { display: none; }
+  .results-screen.show { display: block; }
+  .quiz-screen { }
+  .quiz-screen.hide { display: none; }
+
+  .score-big {
+    text-align: center; padding: 40px 20px 30px;
+    border: 1px solid var(--border); background: var(--surface); margin-bottom: 24px;
+  }
+  .score-num { font-family: var(--display); font-size: 72px; letter-spacing: 0.05em; color: var(--yellow); }
+  .score-label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .score-msg { font-size: 14px; color: var(--text); margin-top: 16px; line-height: 1.6; }
+
+  .review-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .review-item {
+    padding: 12px 16px; border: 1px solid var(--border);
+    background: var(--surface); font-size: 12px; line-height: 1.5;
+  }
+  .review-item.r-ok { border-left: 3px solid var(--green-bright); }
+  .review-item.r-fail { border-left: 3px solid var(--red); }
+  .review-q { color: var(--text); margin-bottom: 6px; }
+  .review-a { color: var(--text-dim); }
+  .review-a span { color: var(--green); }
+  .review-a .wrong-ans { color: var(--red); text-decoration: line-through; }
+
+  .section-title {
+    font-size: 11px; letter-spacing: 0.12em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .wrap { padding: 20px 12px 50px; }
+    .q-card { padding: 16px 14px; }
+    .score-num { font-size: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">EVOLUCIÓN <span>quiz biológico</span></div>
+  <div class="hud">
+    <div>PUNTAJE <span class="hud-val" id="hud-score">0</span></div>
+    <div>RACHA <span class="hud-val" id="hud-streak">0</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- QUIZ SCREEN -->
+  <div class="quiz-screen" id="quiz-screen">
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="progress-label" id="prog-label">1 / 20</div>
+    </div>
+
+    <div class="round-badge" id="round-badge">Ronda 1</div>
+
+    <div class="q-card">
+      <div class="q-type" id="q-type"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn primary" id="btn-next" disabled>SIGUIENTE →</button>
+      <span style="font-size:11px; color:var(--text-muted)" id="nav-hint">Seleccioná una opción</span>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="results-screen" id="results-screen">
+    <div class="score-big">
+      <div class="score-num" id="final-score">0</div>
+      <div class="score-label">puntos de <span id="max-score">0</span></div>
+      <div class="score-msg" id="score-msg"></div>
+    </div>
+
+    <div class="section-title">Revisión de respuestas</div>
+    <div class="review-list" id="review-list"></div>
+
+    <button class="btn primary" onclick="restartQuiz()" style="width:100%; padding:13px;">
+      ↺ JUGAR DE NUEVO (preguntas mezcladas)
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ── BANCO DE PREGUNTAS ────────────────────────────────────────────────────────
+// Tipos: mc (opción múltiple), tf (verdadero/falso), error (encontrar el error),
+//        complete (completar la idea), identify (identificar teoría/concepto)
+
+const ALL_QUESTIONS = [
+
+  // ── CONCEPTOS GENERALES ──
+  {
+    round: "Conceptos generales",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "¿Qué estudia la <strong>evolución</strong> como rama de la biología?",
+    opts: [
+      "Cómo los organismos se adaptan a su ambiente en una sola generación",
+      "Los cambios heredables en los seres vivos a lo largo de millones de años",
+      "La clasificación de las especies actuales",
+      "La composición química del ADN"
+    ],
+    correct: 1,
+    explanation: "La evolución estudia los cambios heredables en los organismos a lo largo de millones de años, incluyendo el origen de nuevas especies y las extinciones."
+  },
+  {
+    round: "Conceptos generales",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "El <strong>fijismo</strong> sostiene que las especies actuales son el resultado de un proceso gradual de cambio desde formas ancestrales.",
+    opts: ["Verdadero", "Falso"],
+    correct: 1,
+    explanation: "Falso. El fijismo sostiene lo contrario: que las especies fueron creadas una única vez y no han cambiado. Quien describe la idea del cambio gradual desde formas ancestrales es el transformismo."
+  },
+  {
+    round: "Conceptos generales",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Para que un cambio en un organismo sea considerado evolutivo, debe ser:",
+    opts: [
+      "Visible a simple vista",
+      "Heredable, es decir, transmisible a la descendencia a través del ADN",
+      "Beneficioso para el individuo que lo porta",
+      "Producido en todos los individuos de la especie al mismo tiempo"
+    ],
+    correct: 1,
+    explanation: "La evolución requiere que los cambios sean heredables. Un cambio que no se transmite al ADN no puede propagarse en la población y no genera evolución."
+  },
+  {
+    round: "Conceptos generales",
+    type: "identify",
+    typeLabel: "Identificar el concepto",
+    q: "Doctrina que sostiene que los seres vivos surgieron de un acto creador y, por tanto, no son fruto de la evolución:",
+    opts: ["Fijismo", "Transformismo", "Creacionismo", "Generación espontánea"],
+    correct: 2,
+    explanation: "El creacionismo defiende que los seres vivos fueron creados y no evolucionaron. El fijismo, en cambio, puede ser creacionista o no, pero se centra en la inmutabilidad de las especies."
+  },
+  {
+    round: "Conceptos generales",
+    type: "complete",
+    typeLabel: "Completar la idea",
+    q: "La <strong>generación espontánea</strong> sostenía que ciertas formas de vida surgían de manera espontánea a partir de materia orgánica o inorgánica. Esta idea fue ___.",
+    opts: [
+      "Confirmada por los experimentos de Darwin",
+      "Descartada experimentalmente; los seres vivos provienen de otros seres vivos",
+      "Incorporada a la teoría sintética de la evolución",
+      "Aceptada por Lamarck como base de su teoría"
+    ],
+    correct: 1,
+    explanation: "La generación espontánea fue refutada experimentalmente (Pasteur, Redi). Hoy se sabe que los seres vivos provienen de otros seres vivos."
+  },
+
+  // ── LAMARCK ──
+  {
+    round: "Teoría de Lamarck",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Según Lamarck, ¿cuál es la causa que origina un nuevo órgano o la transformación de uno existente?",
+    opts: [
+      "Una mutación al azar en el ADN",
+      "La selección natural que actúa sobre variaciones heredadas",
+      "Una necesidad generada por el cambio ambiental",
+      "La deriva génica en poblaciones pequeñas"
+    ],
+    correct: 2,
+    explanation: "Lamarck propuso que los cambios en el ambiente generan necesidades en los individuos, y esas necesidades son las que producen la transformación de órganos. No conocía el ADN ni las mutaciones."
+  },
+  {
+    round: "Teoría de Lamarck",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "Para Lamarck, los cambios adquiridos por un individuo durante su vida <strong>no</strong> se transmiten a la descendencia.",
+    opts: ["Verdadero", "Falso"],
+    correct: 1,
+    explanation: "Falso. Uno de los pilares de Lamarck es precisamente la 'herencia de los caracteres adquiridos': los cambios que un individuo desarrolla durante su vida sí se transmiten a sus hijos."
+  },
+  {
+    round: "Teoría de Lamarck",
+    type: "error",
+    typeLabel: "Encontrá el error",
+    q: "Leé el siguiente enunciado y encontrá la afirmación incorrecta sobre Lamarck:<br><br><em>'Lamarck propuso que el ambiente cambia y genera necesidades. Los individuos cambian para adaptarse. El uso frecuente de un órgano lo desarrolla más, y el desuso lo atrofia. Además, Lamarck afirmó que estos cambios son causados directamente por mutaciones en el ADN.'</em>",
+    opts: [
+      "El ambiente genera necesidades en los individuos",
+      "El uso o desuso afecta el desarrollo de los órganos",
+      "Los cambios son causados por mutaciones en el ADN",
+      "Los cambios adquiridos se transmiten a la descendencia"
+    ],
+    correct: 2,
+    explanation: "En la época de Lamarck no se conocía el ADN. Él explicaba los cambios mediante una 'tendencia inconsciente' o 'fuerza vital' de adaptación, no por mutaciones genéticas."
+  },
+  {
+    round: "Teoría de Lamarck",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "En la teoría de Lamarck, la <strong>unidad de evolución</strong> es:",
+    opts: [
+      "La especie completa",
+      "La población",
+      "El individuo",
+      "El gen"
+    ],
+    correct: 2,
+    explanation: "Para Lamarck, lo que evoluciona (cambia) es el individuo durante su propia vida, como respuesta a las necesidades del ambiente."
+  },
+  {
+    round: "Teoría de Lamarck",
+    type: "identify",
+    typeLabel: "Identificar la teoría",
+    q: "Un ave acuática desarrolla membranas entre sus patas porque necesita desplazarse mejor en el agua, y sus hijos nacen con membranas más desarrolladas. ¿A qué teoría corresponde este razonamiento?",
+    opts: ["Darwin-Wallace", "Teoría sintética", "Lamarck", "Neutralismo"],
+    correct: 2,
+    explanation: "Este es un ejemplo clásico lamarckiano: la necesidad ambiental genera el cambio en el individuo, y ese cambio se hereda. Darwin en cambio diría que ya existían variaciones en el tamaño de las membranas, y las aves con membranas más grandes tuvieron más descendencia."
+  },
+
+  // ── DARWIN-WALLACE ──
+  {
+    round: "Teoría de Darwin-Wallace",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Darwin partió de observar a los criadores de animales para formular su teoría. ¿Qué idea principal extrajo de esa observación?",
+    opts: [
+      "Que los animales pueden cambiar si se los somete a temperaturas extremas",
+      "Que si los humanos pueden seleccionar rasgos deliberadamente, la naturaleza también podría hacer una selección",
+      "Que los genes dominantes siempre se imponen sobre los recesivos",
+      "Que las especies solo cambian cuando hay catástrofes naturales"
+    ],
+    correct: 1,
+    explanation: "Darwin vio que los criadores seleccionaban individuos con características deseadas y los cruzaban generación tras generación. Dedujo que la naturaleza podría hacer algo similar: seleccionar los más aptos para el ambiente."
+  },
+  {
+    round: "Teoría de Darwin-Wallace",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "Según Darwin-Wallace, los individuos 'más aptos' son los más fuertes o los más grandes de la población.",
+    opts: ["Verdadero", "Falso"],
+    correct: 1,
+    explanation: "Falso. 'Más apto' no significa más fuerte o más grande. Significa que tiene las características más ventajosas para sobrevivir y reproducirse en un ambiente dado. Si el ambiente cambia, esas características pueden dejar de ser ventajosas."
+  },
+  {
+    round: "Teoría de Darwin-Wallace",
+    type: "complete",
+    typeLabel: "Completar la idea",
+    q: "La teoría de Darwin puede resumirse como: variación que se hereda y ___, en un ambiente cambiante, repitiendo el proceso generación tras generación.",
+    opts: ["mutación", "selección", "adaptación", "especiación"],
+    correct: 1,
+    explanation: "Darwin resumió su teoría en dos ingredientes: variación heredable y selección natural. La selección actúa sobre las variaciones existentes, favoreciendo a los que tienen características más ventajosas."
+  },
+  {
+    round: "Teoría de Darwin-Wallace",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Darwin y Wallace plantearon que todas las especies tienen un potencial reproductivo para multiplicarse en forma geométrica, pero eso no ocurre porque:",
+    opts: [
+      "Los individuos adquieren resistencias durante su vida",
+      "Existen presiones ambientales como la competencia por recursos",
+      "Las mutaciones frenan la reproducción",
+      "Los individuos de una misma especie son todos idénticos"
+    ],
+    correct: 1,
+    explanation: "El crecimiento geométrico es frenado por la competencia entre individuos por recursos limitados (alimento, espacio, agua). De esta competencia surge la selección natural."
+  },
+  {
+    round: "Teoría de Darwin-Wallace",
+    type: "error",
+    typeLabel: "Encontrá el error",
+    q: "¿Cuál de estas afirmaciones <strong>NO</strong> forma parte de la teoría de Darwin-Wallace?",
+    opts: [
+      "Los individuos de una misma especie presentan variaciones heredables",
+      "Los individuos con variaciones favorables tienen más probabilidades de dejar descendencia",
+      "Los individuos cambian a lo largo de su vida para adaptarse al ambiente",
+      "A lo largo del tiempo, las especies van cambiando y dando origen a nuevas especies"
+    ],
+    correct: 2,
+    explanation: "La idea de que los individuos cambian durante su vida para adaptarse pertenece a Lamarck, no a Darwin. Darwin propuso que ya existen variaciones en la población, y la selección natural favorece a los que tienen las variantes más ventajosas."
+  },
+
+  // ── TEORÍA SINTÉTICA ──
+  {
+    round: "Teoría sintética",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "La teoría sintética de la evolución (neodarwinismo) combina:",
+    opts: [
+      "La teoría de Lamarck con los conocimientos de genética",
+      "La teoría de Darwin con la teoría de Lamarck",
+      "La teoría de Darwin con los conocimientos de genética",
+      "El creacionismo con el transformismo"
+    ],
+    correct: 2,
+    explanation: "La teoría sintética es la teoría de Darwin actualizada con los aportes de la genética: el ADN, las mutaciones, la meiosis, el crossing over. Esto permitió explicar el origen de la variabilidad y el mecanismo de la herencia."
+  },
+  {
+    round: "Teoría sintética",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "Según la teoría sintética, los cambios en el <strong>fenotipo</strong> de un individuo durante su vida modifican directamente su <strong>genotipo</strong>.",
+    opts: ["Verdadero", "Falso"],
+    correct: 1,
+    explanation: "Falso. Este es precisamente el punto que refuta a Lamarck. La información fluye del ADN → ARN → Proteínas (dogma central), pero no al revés. Un cambio fenotípico no modifica el ADN."
+  },
+  {
+    round: "Teoría sintética",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Para que un carácter se herede según la teoría sintética, ¿dónde debe estar la información?",
+    opts: [
+      "En las proteínas del citoplasma",
+      "En las gametas (células sexuales)",
+      "En cualquier célula del cuerpo",
+      "En el ARN mensajero"
+    ],
+    correct: 1,
+    explanation: "Solo la información contenida en las gametas puede heredarse. Los cambios que ocurren en células somáticas (del cuerpo) durante la vida del individuo no se transmiten a la descendencia."
+  },
+  {
+    round: "Teoría sintética",
+    type: "identify",
+    typeLabel: "Identificar el concepto",
+    q: "En la teoría sintética, se llama <strong>'pool génico'</strong> a:",
+    opts: [
+      "El conjunto de proteínas que produce una población",
+      "Todos los fenotipos posibles dentro de una especie",
+      "El conjunto de alelos presentes en una población",
+      "La proporción de individuos que se reproducen en una generación"
+    ],
+    correct: 2,
+    explanation: "El pool génico es la totalidad de alelos que existen en una población. La evolución, según la teoría sintética, consiste en cambios en las frecuencias de esos alelos a lo largo del tiempo."
+  },
+  {
+    round: "Teoría sintética",
+    type: "complete",
+    typeLabel: "Completar la idea",
+    q: "Según la teoría sintética, hay <strong>evolución</strong> cuando se produce un cambio en ___ de la población, no importa lo que ocurra en un individuo aislado.",
+    opts: [
+      "el tamaño corporal promedio",
+      "las frecuencias génicas",
+      "el número de individuos",
+      "el territorio que ocupa"
+    ],
+    correct: 1,
+    explanation: "La unidad de evolución en la teoría sintética es la población, no el individuo. La evolución se mide como cambio en las frecuencias génicas (proporciones de alelos) a lo largo del tiempo."
+  },
+  {
+    round: "Teoría sintética",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "La selección natural actúa directamente sobre:",
+    opts: [
+      "Los alelos recesivos del pool génico",
+      "La variabilidad fenotípica de los individuos",
+      "Las mutaciones antes de que ocurran",
+      "La velocidad de reproducción de la especie"
+    ],
+    correct: 1,
+    explanation: "La selección natural 've' los fenotipos, no los genotipos. Actúa directamente sobre la variabilidad fenotípica, e indirectamente sobre la variabilidad genética: al seleccionar fenotipos, está seleccionando los alelos que los producen."
+  },
+  {
+    round: "Teoría sintética",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "Las fuentes de variabilidad genética incluyen las mutaciones, el crossing over y la migración al azar de cromosomas homólogos durante la meiosis.",
+    opts: ["Verdadero", "Falso"],
+    correct: 0,
+    explanation: "Verdadero. Estas tres fuentes explican por qué todos los hijos de una pareja son diferentes entre sí: la recombinación (crossing over), la segregación al azar de homólogos en la meiosis y las mutaciones."
+  },
+  {
+    round: "Teoría sintética",
+    type: "error",
+    typeLabel: "Encontrá el error",
+    q: "Una población de moscas tiene individuos resistentes y no resistentes a un virus. Al aparecer el virus, sobreviven las resistentes. ¿Qué explicación es <strong>incorrecta</strong>?",
+    opts: [
+      "Las moscas resistentes tenían de antemano la mutación que las protegía",
+      "Al reproducirse las resistentes, la mutación se propagó en la población",
+      "Las moscas adquirieron la resistencia al entrar en contacto con el virus",
+      "La selección natural favoreció a los individuos con la mutación ventajosa"
+    ],
+    correct: 2,
+    explanation: "Decir que 'adquirieron la resistencia' es la explicación lamarckiana (los individuos cambian para adaptarse). La teoría sintética dice que la mutación ya existía en algunos individuos antes de que apareciera el virus."
+  },
+
+  // ── CAUSAS DE EVOLUCIÓN ──
+  {
+    round: "Causas de evolución",
+    type: "identify",
+    typeLabel: "Identificar la causa",
+    q: "Individuos con alelos poco frecuentes emigran de su población y fundan una nueva colonia. La nueva población tiene frecuencias génicas muy distintas a la original. Esta causa se llama:",
+    opts: [
+      "Cuello de botella",
+      "Selección natural",
+      "Efecto fundador",
+      "Flujo génico por inmigración"
+    ],
+    correct: 2,
+    explanation: "El efecto fundador ocurre cuando un grupo pequeño se separa y funda una nueva población. Los alelos que portaban esos fundadores (aunque fueran raros en la población original) pueden volverse muy frecuentes en la nueva población."
+  },
+  {
+    round: "Causas de evolución",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "El <strong>cuello de botella</strong> es un tipo de deriva génica donde:",
+    opts: [
+      "Una catástrofe elimina a la mayoría de individuos, y los sobrevivientes no lo hacen por ventajas adaptativas sino por azar",
+      "Un grupo funda una nueva población en un territorio diferente",
+      "El ambiente cambia y selecciona a los individuos más aptos",
+      "Ingresan individuos con alelos nuevos desde otra población"
+    ],
+    correct: 0,
+    explanation: "En el cuello de botella, una catástrofe reduce drásticamente el tamaño de la población. Los sobrevivientes son al azar, no los 'mejores'. La nueva población tiene frecuencias génicas muy distintas a la original, pero no por selección natural."
+  },
+  {
+    round: "Causas de evolución",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "El <strong>flujo génico</strong> ocurre cuando individuos migran de una población a otra, modificando las frecuencias de alelos de la población receptora.",
+    opts: ["Verdadero", "Falso"],
+    correct: 0,
+    explanation: "Verdadero. El flujo génico (inmigración/emigración) introduce o retira alelos de una población, cambiando sus frecuencias génicas y constituyendo por lo tanto una causa de evolución."
+  },
+  {
+    round: "Causas de evolución",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Mariposas de alas blancas viven sobre troncos blancos y son difíciles de ver por las aves. Cuando la contaminación oscurece los troncos, ¿qué ocurre según la teoría sintética?",
+    opts: [
+      "Las mariposas desarrollan alas más oscuras para camuflarse",
+      "Las mariposas blancas son más visibles, son devoradas con mayor frecuencia y disminuye su frecuencia génica",
+      "Todas las mariposas mueren y la especie se extingue",
+      "Las mariposas emigran hacia zonas con troncos más claros"
+    ],
+    correct: 1,
+    explanation: "Cambia el ambiente y cambia qué característica es ventajosa. Las mariposas blancas pasan a ser más visibles y son más comidas. Las de alas oscuras sobreviven y se reproducen más, aumentando su frecuencia en la población."
+  },
+  {
+    round: "Causas de evolución",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "Las cuatro causas de evolución reconocidas por la teoría sintética son:",
+    opts: [
+      "Mutaciones, selección natural, flujo génico y deriva génica",
+      "Mutaciones, uso/desuso, herencia de caracteres adquiridos y selección natural",
+      "Selección natural, generación espontánea, fijismo y transformismo",
+      "Mutaciones, especiación, extinción y adaptación"
+    ],
+    correct: 0,
+    explanation: "Las cuatro causas son: mutaciones (nuevo alelo), selección natural (ventaja adaptativa), flujo génico (migraciones) y deriva génica (azar — cuello de botella y efecto fundador)."
+  },
+  {
+    round: "Causas de evolución",
+    type: "identify",
+    typeLabel: "Identificar la causa",
+    q: "En una gameta se produce un error de copia del ADN que genera un alelo que antes no existía en la población. Con el tiempo ese alelo se propaga. ¿Qué causa de evolución está en el origen del cambio?",
+    opts: ["Deriva génica", "Flujo génico", "Mutación", "Selección natural"],
+    correct: 2,
+    explanation: "Las mutaciones son la única fuente de alelos completamente nuevos. Sin mutaciones, no habría variación original sobre la cual actuar la selección natural, la deriva génica o el flujo génico."
+  },
+
+  // ── NEUTRALISMO ──
+  {
+    round: "Neutralismo",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "El <strong>neutralismo</strong> propone que muchos genes mutantes:",
+    opts: [
+      "Siempre confieren una ventaja selectiva",
+      "Son eliminados inmediatamente por la selección natural",
+      "Son selectivamente neutros y su destino depende del azar",
+      "Generan cambios fenotípicos visibles en todos los individuos"
+    ],
+    correct: 2,
+    explanation: "El neutralismo sostiene que gran parte de la variación genética en las poblaciones no tiene valor adaptativo: los alelos mutantes no son ni mejores ni peores, y se propagan o desaparecen por azar (deriva génica)."
+  },
+
+  // ── ESPECIACIÓN ──
+  {
+    round: "Especiación",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "La <strong>especiación</strong> es:",
+    opts: [
+      "El aumento del tamaño de una población a lo largo del tiempo",
+      "El surgimiento de dos especies distintas a partir de una especie original",
+      "La extinción de una especie por cambio ambiental",
+      "La adaptación de una especie a un nuevo alimento"
+    ],
+    correct: 1,
+    explanation: "La especiación es el proceso por el cual una especie original da origen a dos (o más) especies distintas. El mecanismo central es el aislamiento reproductivo entre dos grupos que dejan de cruzarse."
+  },
+  {
+    round: "Especiación",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "En la <strong>especiación alopátrida</strong>, dos grupos de una misma población se separan y evolucionan de forma independiente debido a una barrera geográfica.",
+    opts: ["Verdadero", "Falso"],
+    correct: 0,
+    explanation: "Verdadero. En la especiación alopátrida (del griego 'allos' = diferente, 'patria' = tierra), una barrera geográfica (montaña, río, océano) impide el cruce entre los grupos, que evolucionan por separado hasta convertirse en especies distintas."
+  },
+  {
+    round: "Especiación",
+    type: "mc",
+    typeLabel: "Opción múltiple",
+    q: "En la especiación <strong>simpátrida</strong>, ¿cómo se produce el aislamiento reproductivo?",
+    opts: [
+      "Por una barrera física que divide el territorio",
+      "Por diferencias de comportamiento entre individuos que conviven en el mismo lugar",
+      "Por mutaciones que vuelven a los individuos estériles",
+      "Por una catástrofe natural que elimina a parte de la población"
+    ],
+    correct: 1,
+    explanation: "En la especiación simpátrida no hay barrera geográfica. El aislamiento surge por diferencias de comportamiento (por ejemplo, distintos horarios de reproducción, distintas preferencias de nicho), lo que lleva a que grupos dentro de la misma área no se crucen entre sí."
+  },
+  {
+    round: "Especiación",
+    type: "complete",
+    typeLabel: "Completar la idea",
+    q: "Si dos poblaciones se aíslan reproductivamente y evolucionan por separado durante mucho tiempo, al cabo de millones de años sus miembros habrán cambiado tanto que, si se encontraran, ___.",
+    opts: [
+      "podrían reproducirse sin ningún problema",
+      "ya no podrían reproducirse entre sí: se habrán convertido en dos especies distintas",
+      "fusionarían sus genes y volverían a ser una sola especie",
+      "la selección natural los haría idénticos nuevamente"
+    ],
+    correct: 1,
+    explanation: "El criterio biológico de especie es justamente la capacidad de reproducirse y dar descendencia fértil. Si dos poblaciones aisladas ya no pueden hacerlo, son especies distintas."
+  },
+  {
+    round: "Especiación",
+    type: "identify",
+    typeLabel: "Identificar el concepto",
+    q: "El proceso que, durante 3800 millones de años, dio origen a la enorme diversidad de organismos que han poblado la Tierra es:",
+    opts: [
+      "La generación espontánea",
+      "El fijismo",
+      "La especiación acumulada a lo largo del tiempo evolutivo",
+      "La herencia de los caracteres adquiridos"
+    ],
+    correct: 2,
+    explanation: "La especiación repetida durante miles de millones de años es el proceso que explica la diversidad actual y pasada de la vida. A partir de los primeros organismos, los sucesivos aislamientos y cambios fueron generando millones de especies."
+  },
+
+  // ── COMPARACIÓN LAMARCK vs DARWIN ──
+  {
+    round: "Lamarck vs Darwin",
+    type: "mc",
+    typeLabel: "Comparar teorías",
+    q: "Aplicando cada teoría a la jirafa: Lamarck diría que el cuello largo surgió porque los individuos <em>estiraron</em> el cuello y heredaron ese cambio. Darwin diría que:",
+    opts: [
+      "Todas las jirafas estiraron el cuello al mismo tiempo",
+      "Ya existían jirafas con distinto largo de cuello; las de cuello más largo tuvieron más descendencia y gradualmente esa característica se volvió más frecuente",
+      "Una mutación simultánea en toda la población generó el cuello largo",
+      "El ambiente decidió que las jirafas necesitaban el cuello largo y las transformó"
+    ],
+    correct: 1,
+    explanation: "Darwin: ya hay variación (cuellos de distintos tamaños). Las jirafas con cuello más largo llegan más hojas, sobreviven mejor y dejan más descendencia. La selección natural actúa sobre la variación ya existente, no genera el cambio en el individuo."
+  },
+  {
+    round: "Lamarck vs Darwin",
+    type: "tf",
+    typeLabel: "Verdadero o Falso",
+    q: "Tanto Lamarck como Darwin conocían el ADN y los mecanismos de la herencia genética cuando formularon sus teorías.",
+    opts: ["Verdadero", "Falso"],
+    correct: 1,
+    explanation: "Falso. Ninguno de los dos conocía el ADN, los genes ni la genética. Ambos observaron los cambios y la herencia, pero no podían explicar su mecanismo. Eso lo aportaron Mendel y los genetistas posteriores."
+  },
+  {
+    round: "Lamarck vs Darwin",
+    type: "error",
+    typeLabel: "Encontrá el error",
+    q: "¿Cuál de las siguientes afirmaciones es <strong>correcta</strong> según la teoría sintética actual?",
+    opts: [
+      "Los organismos cambian intencionalmente para adaptarse al ambiente",
+      "Los cambios fenotípicos adquiridos durante la vida se transmiten al ADN",
+      "La variabilidad genética es al azar; no tiene propósito ni dirección",
+      "Los individuos más fuertes siempre son los más aptos evolutivamente"
+    ],
+    correct: 2,
+    explanation: "La teoría sintética establece que los cambios en el ADN (mutaciones, recombinación) son al azar. No tienen propósito, no 'buscan' adaptar al individuo. Pueden ser ventajosos, neutros o desventajosos según el ambiente."
+  }
+];
+
+// ── ESTADO ───────────────────────────────────────────────────────────────────
+let questions = [];
+let current = 0;
+let score = 0;
+let streak = 0;
+let answered = false;
+let history = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuiz() {
+  // Mezclar preguntas y opciones
+  questions = shuffle(ALL_QUESTIONS).map(q => {
+    // Para mc, tf, complete, identify — mezclar opciones preservando cuál es la correcta
+    const correctText = q.opts[q.correct];
+    const shuffledOpts = shuffle([...q.opts]);
+    return {
+      ...q,
+      opts: shuffledOpts,
+      correct: shuffledOpts.indexOf(correctText)
+    };
+  });
+  current = 0;
+  score = 0;
+  streak = 0;
+  answered = false;
+  history = [];
+}
+
+function render() {
+  const q = questions[current];
+
+  // Progress
+  const pct = (current / questions.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = (current + 1) + ' / ' + questions.length;
+  document.getElementById('round-badge').textContent = q.round;
+  document.getElementById('q-type').textContent = q.typeLabel;
+  document.getElementById('q-text').innerHTML = q.q;
+  document.getElementById('hud-score').textContent = score;
+  document.getElementById('hud-streak').textContent = streak;
+
+  // Options
+  const keys = ['A', 'B', 'C', 'D'];
+  const optsEl = document.getElementById('options');
+  optsEl.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.innerHTML = '<div class="opt-key">' + (q.type === 'tf' ? (i === 0 ? 'V' : 'F') : keys[i]) + '</div><div>' + opt + '</div>';
+    div.addEventListener('click', () => selectAnswer(i));
+    optsEl.appendChild(div);
+  });
+
+  // Feedback
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+
+  // Nav
+  document.getElementById('btn-next').disabled = true;
+  document.getElementById('nav-hint').textContent = 'Seleccioná una opción';
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  const isCorrect = idx === q.correct;
+
+  opts.forEach((o, i) => {
+    o.classList.add('disabled');
+    if (i === idx) o.classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect && i === q.correct) o.classList.add('correct');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (isCorrect) {
+    score += 10;
+    streak++;
+    if (streak > 1) score += (streak - 1) * 2; // bonus racha
+    fb.className = 'feedback show';
+    fb.innerHTML = '✓ Correcto. ' + q.explanation;
+  } else {
+    streak = 0;
+    fb.className = 'feedback wrong-fb show';
+    fb.innerHTML = '✗ Incorrecto. ' + q.explanation;
+  }
+
+  history.push({ q: q.q, userIdx: idx, correctIdx: q.correct, userText: q.opts[idx], correctText: q.opts[q.correct], ok: isCorrect });
+
+  document.getElementById('hud-score').textContent = score;
+  document.getElementById('hud-streak').textContent = streak;
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('nav-hint').textContent = isCorrect ? '¡Correcto! +10 pts' : 'Seguí intentando';
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) {
+    showResults();
+  } else {
+    render();
+  }
+}
+
+function showResults() {
+  document.getElementById('quiz-screen').classList.add('hide');
+  const rs = document.getElementById('results-screen');
+  rs.classList.add('show');
+
+  const maxScore = questions.length * 10 + (questions.length - 1) * 2;
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('max-score').textContent = questions.length * 10;
+
+  const pct = score / (questions.length * 10);
+  let msg = '';
+  if (pct >= 0.9) msg = 'Excelente. Dominás la teoría evolutiva.';
+  else if (pct >= 0.7) msg = 'Muy bien. Tenés sólidos conocimientos sobre evolución.';
+  else if (pct >= 0.5) msg = 'Bien encaminado/a. Repasá las preguntas que erraste.';
+  else msg = 'Seguí estudiando. Repasá los temas marcados en rojo.';
+  document.getElementById('score-msg').textContent = msg;
+
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  history.forEach((h, i) => {
+    const div = document.createElement('div');
+    div.className = 'review-item ' + (h.ok ? 'r-ok' : 'r-fail');
+    div.innerHTML = '<div class="review-q">' + (i+1) + '. ' + h.q.replace(/<[^>]+>/g, '') + '</div>' +
+      '<div class="review-a">' +
+      (h.ok
+        ? 'Tu respuesta: <span>' + h.correctText + '</span>'
+        : 'Tu respuesta: <span class="wrong-ans">' + h.userText + '</span> — Correcta: <span>' + h.correctText + '</span>'
+      ) +
+      '</div>';
+    list.appendChild(div);
+  });
+}
+
+function restartQuiz() {
+  document.getElementById('results-screen').classList.remove('show');
+  document.getElementById('quiz-screen').classList.remove('hide');
+  buildQuiz();
+  render();
+}
+
+// INIT
+buildQuiz();
+render();
+
+document.getElementById('btn-next').addEventListener('click', nextQuestion);
+</script>
+</body>
+</html>

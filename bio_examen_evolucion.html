@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biología — Evaluación Interactiva</title>
+<style>
+  :root {
+    --verde: #1D9E75;
+    --verde-claro: #E1F5EE;
+    --verde-oscuro: #085041;
+    --rojo: #E24B4A;
+    --rojo-claro: #FCEBEB;
+    --amarillo: #BA7517;
+    --amarillo-claro: #FAEEDA;
+    --gris: #2C2C2A;
+    --gris-medio: #888780;
+    --gris-claro: #F1EFE8;
+    --blanco: #ffffff;
+    --fondo: #f7f6f2;
+    --radio: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--fondo);
+    color: var(--gris);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--verde-oscuro);
+    color: #9FE1CB;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  header .logo {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #5DCAA5;
+    opacity: 0.8;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: normal;
+    color: #E1F5EE;
+    letter-spacing: 0.01em;
+  }
+  header .separador { flex: 1; }
+  header .badge-tema {
+    font-size: 11px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    color: #9FE1CB;
+    letter-spacing: 0.05em;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* PANTALLA INICIO */
+  #pantalla-inicio {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  #pantalla-inicio h2 {
+    font-size: 2rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.5rem;
+  }
+  #pantalla-inicio p {
+    color: var(--gris-medio);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  .temas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+    text-align: left;
+  }
+  .tema-card {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .tema-card:hover {
+    border-color: var(--verde);
+    transform: translateY(-2px);
+  }
+  .tema-card.seleccionada {
+    border: 2px solid var(--verde);
+    background: var(--verde-claro);
+  }
+  .tema-card .tema-icono {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .tema-card h3 {
+    font-size: 0.95rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.25rem;
+  }
+  .tema-card p {
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .check-mark {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    color: var(--verde);
+    font-size: 1rem;
+    display: none;
+  }
+  .tema-card.seleccionada .check-mark { display: block; }
+
+  .btn-empezar {
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.9rem 2.5rem;
+    font-size: 1rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1rem;
+  }
+  .btn-empezar:hover { background: var(--verde-oscuro); }
+  .btn-empezar:disabled { background: var(--gris-medio); cursor: not-allowed; }
+
+  /* EXAMEN */
+  #pantalla-examen { display: none; }
+
+  .progreso-barra {
+    background: #D3D1C7;
+    border-radius: 4px;
+    height: 6px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progreso-fill {
+    background: var(--verde);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progreso-texto {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin-bottom: 0.5rem;
+  }
+
+  .pregunta-bloque {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .pregunta-num {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gris-medio);
+    margin-bottom: 0.6rem;
+  }
+  .pregunta-texto {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--gris);
+    margin-bottom: 1.2rem;
+  }
+
+  /* MÚLTIPLE CHOICE */
+  .opciones { list-style: none; }
+  .opcion {
+    border: 0.5px solid #D3D1C7;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .opcion:hover { background: var(--gris-claro); border-color: #B4B2A9; }
+  .opcion.seleccionada { background: #E1F5EE; border-color: var(--verde); }
+  .opcion-letra {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gris-claro);
+    border: 0.5px solid #B4B2A9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--gris-medio);
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .opcion.seleccionada .opcion-letra {
+    background: var(--verde);
+    color: white;
+    border-color: var(--verde);
+  }
+
+  /* DESARROLLO */
+  .campo-desarrollo {
+    width: 100%;
+    border: 0.5px solid #D3D1C7;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 120px;
+    color: var(--gris);
+    background: var(--blanco);
+    transition: border-color 0.2s;
+  }
+  .campo-desarrollo:focus {
+    outline: none;
+    border-color: var(--verde);
+  }
+  .ayuda-desarrollo {
+    font-size: 0.8rem;
+    color: var(--gris-medio);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  .btns-examen {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+  .btn-secundario {
+    background: transparent;
+    border: 0.5px solid #B4B2A9;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    color: var(--gris);
+    transition: background 0.15s;
+  }
+  .btn-secundario:hover { background: var(--gris-claro); }
+  .btn-primario {
+    background: var(--verde-oscuro);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.8rem;
+    font-size: 0.9rem;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primario:hover { background: var(--verde); }
+
+  /* RESULTADOS */
+  #pantalla-resultados { display: none; }
+
+  .puntaje-hero {
+    text-align: center;
+    padding: 2rem;
+    background: var(--blanco);
+    border-radius: var(--radio);
+    border: 0.5px solid #D3D1C7;
+    margin-bottom: 2rem;
+  }
+  .puntaje-numero {
+    font-size: 3.5rem;
+    color: var(--verde-oscuro);
+    font-weight: normal;
+  }
+  .puntaje-label {
+    font-size: 0.85rem;
+    color: var(--gris-medio);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .puntaje-mensaje {
+    font-size: 1.1rem;
+    color: var(--gris);
+    margin-top: 0.5rem;
+  }
+
+  .correccion-item {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    border: 0.5px solid #D3D1C7;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+  .correccion-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 0.5px solid #D3D1C7;
+  }
+  .correccion-header.correcto { background: var(--verde-claro); border-bottom-color: #9FE1CB; }
+  .correccion-header.incorrecto { background: var(--rojo-claro); border-bottom-color: #F7C1C1; }
+  .correccion-header.desarrollo { background: var(--amarillo-claro); border-bottom-color: #FAC775; }
+  .icono-estado {
+    font-size: 1rem;
+    min-width: 24px;
+    text-align: center;
+  }
+  .correccion-pregunta-texto {
+    font-size: 0.9rem;
+    flex: 1;
+    color: var(--gris);
+  }
+  .correccion-chevron { color: var(--gris-medio); font-size: 0.8rem; }
+
+  .correccion-body {
+    padding: 1.2rem 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+  .correccion-body.oculto { display: none; }
+
+  .respuesta-usuario {
+    background: var(--gris-claro);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+    color: var(--gris);
+  }
+  .explicacion {
+    color: var(--verde-oscuro);
+    line-height: 1.7;
+  }
+  .explicacion.error { color: #A32D2D; }
+
+  .tag-tipo {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: #D3D1C7;
+    color: var(--gris);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-right: 0.5rem;
+  }
+  .tag-tipo.desarrollo { background: #FAC775; color: #633806; }
+
+  .cargando-ia {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gris-medio);
+    font-style: italic;
+  }
+  .dot-anim::after {
+    content: '';
+    animation: dots 1.5s infinite;
+  }
+  @keyframes dots {
+    0%   { content: '.'; }
+    33%  { content: '..'; }
+    66%  { content: '...'; }
+  }
+
+  .btn-reiniciar {
+    display: block;
+    margin: 2rem auto 0;
+    background: transparent;
+    border: 0.5px solid var(--verde);
+    color: var(--verde-oscuro);
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-reiniciar:hover { background: var(--verde-claro); }
+
+  /* REPASO */
+  #pantalla-repaso { display: none; }
+  .repaso-intro {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .repaso-intro h2 {
+    font-size: 1.3rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.4rem;
+  }
+  .repaso-intro p {
+    font-size: 0.9rem;
+    color: var(--gris-medio);
+    line-height: 1.6;
+  }
+  .fichas-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .ficha {
+    background: var(--blanco);
+    border: 0.5px solid #D3D1C7;
+    border-radius: var(--radio);
+    overflow: hidden;
+  }
+  .ficha-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.4rem;
+    cursor: pointer;
+    background: var(--gris-claro);
+    border-bottom: 0.5px solid #D3D1C7;
+    transition: background 0.15s;
+  }
+  .ficha-header:hover { background: #e8e6df; }
+  .ficha-titulo {
+    font-size: 1rem;
+    font-weight: normal;
+    color: var(--verde-oscuro);
+  }
+  .ficha-chevron { color: var(--gris-medio); font-size: 0.85rem; transition: transform 0.2s; }
+  .ficha-chevron.abierto { transform: rotate(180deg); }
+  .ficha-body {
+    display: none;
+    padding: 1.4rem 1.8rem;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--gris);
+  }
+  .ficha-body.visible { display: block; }
+  .ficha-body p { margin-bottom: 0.9rem; }
+  .ficha-body p:last-child { margin-bottom: 0; }
+  .ficha-body strong { color: var(--verde-oscuro); font-weight: normal; font-style: italic; }
+  .ficha-body .comparacion {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .ficha-body .col-teoria {
+    background: var(--verde-claro);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .ficha-body .col-teoria h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--verde-oscuro);
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+  }
+  .ficha-body .col-teoria.roja {
+    background: var(--rojo-claro);
+  }
+  .ficha-body .col-teoria.roja h4 { color: #A32D2D; }
+  .ficha-body ul {
+    padding-left: 1.2rem;
+    margin: 0.5rem 0 0.9rem;
+  }
+  .ficha-body ul li { margin-bottom: 0.4rem; }
+  .ficha-body .etiqueta {
+    display: inline-block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: #D3D1C7;
+    color: var(--gris);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-right: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .ficha-body .etiqueta.verde { background: #9FE1CB; color: var(--verde-oscuro); }
+  .ficha-body .etiqueta.roja { background: #F7C1C1; color: #A32D2D; }
+  .ficha-body .etiqueta.amarilla { background: #FAC775; color: #633806; }
+  .btns-repaso {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .ficha-body .comparacion { grid-template-columns: 1fr; }
+    header { padding: 1rem 1.2rem; }
+    header h1 { font-size: 1.1rem; }
+    .container { padding: 1.5rem 1rem 3rem; }
+    .pregunta-bloque { padding: 1.2rem; }
+    .puntaje-numero { font-size: 2.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Portal Roots · Estudio</div>
+    <h1>Biología — Evaluación</h1>
+  </div>
+  <div class="separador"></div>
+  <div class="badge-tema" id="badge-tema-header"></div>
+</header>
+
+<div class="container">
+
+  <!-- INICIO -->
+  <div id="pantalla-inicio">
+    <h2>¿Qué querés repasar hoy?</h2>
+    <p>Elegí uno o más temas y empezá la evaluación.<br>Al terminar vas a recibir una corrección detallada.</p>
+
+    <div class="temas-grid" id="temas-grid"></div>
+
+    <button class="btn-empezar" id="btn-empezar" disabled onclick="empezarExamen()">
+      Empezar evaluación
+    </button>
+  </div>
+
+  <!-- REPASO -->
+  <div id="pantalla-repaso">
+    <div class="repaso-intro">
+      <h2 id="repaso-titulo">Repaso antes de empezar</h2>
+      <p>Leé cada ficha con atención antes de hacer la evaluación. Hacé clic en cada concepto para desplegarlo.</p>
+    </div>
+    <div class="fichas-grid" id="fichas-container"></div>
+    <div class="btns-repaso">
+      <button class="btn-secundario" onclick="volverInicio()">← Volver</button>
+      <button class="btn-primario" onclick="irAlExamen()">Ya estudié — Empezar evaluación →</button>
+    </div>
+  </div>
+
+  <!-- EXAMEN -->
+  <div id="pantalla-examen">
+    <div class="progreso-texto">
+      <span id="progreso-txt">Pregunta 1 de 10</span>
+      <span id="progreso-pct">0%</span>
+    </div>
+    <div class="progreso-barra">
+      <div class="progreso-fill" id="progreso-fill" style="width:0%"></div>
+    </div>
+    <div id="preguntas-container"></div>
+    <div class="btns-examen">
+      <button class="btn-secundario" onclick="volverInicio()">← Salir</button>
+      <button class="btn-primario" id="btn-siguiente" onclick="siguiente()">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="pantalla-resultados">
+    <div class="puntaje-hero">
+      <div class="puntaje-label">Resultado</div>
+      <div class="puntaje-numero" id="puntaje-numero"></div>
+      <div class="puntaje-mensaje" id="puntaje-mensaje"></div>
+    </div>
+    <div id="correcciones-container"></div>
+    <button class="btn-reiniciar" onclick="volverInicio()">Hacer otra evaluación</button>
+  </div>
+
+</div>
+
+<script>
+const TEMAS = [
+  {
+    id: 'celula',
+    icono: '🔬',
+    nombre: 'Núcleo y ciclo celular',
+    descripcion: 'Estructura del núcleo, cromatina, ciclo celular y su regulación',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de las siguientes afirmaciones describe correctamente la función del nucleolo?',
+        opciones: [
+          'Controla el ingreso y egreso de sustancias por los poros nucleares',
+          'Sintetiza ARN ribosomal (ARNr) y ensambla las subunidades ribosomales',
+          'Mantiene la forma del núcleo mediante filamentos de laminina',
+          'Duplica el ADN durante la fase S del ciclo celular'
+        ],
+        correcta: 1,
+        explicacion: 'El nucleolo es la región del núcleo donde se fabrican los ARN ribosomales (ARNr). Luego, esos ARNr se unen a proteínas ribosomales para formar las subunidades ribosomales, también en el nucleolo. El control de los poros corresponde a importinas/exportinas, la forma nuclear a la lámina nuclear, y la duplicación del ADN a la ADN polimerasa en la fase S.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una célula está en la fase G1 del ciclo celular. ¿Cuál de estas afirmaciones es correcta?',
+        opciones: [
+          'El ADN se está duplicando activamente',
+          'La célula se está preparando para dividirse mediante síntesis de proteínas relacionadas con la división',
+          'La célula crece y realiza intensa actividad metabólica, pero aún no duplica su ADN',
+          'Los cromosomas se condensan para separarse en dos células hijas'
+        ],
+        correcta: 2,
+        explicacion: 'G1 es una fase de crecimiento e intensa actividad metabólica: aumenta el tamaño de la membrana, el número de enzimas, ribosomas y organelas. La duplicación del ADN ocurre en la fase S, la preparación para la división (síntesis de proteínas relacionadas) en G2, y la condensación de cromosomas en la profase de la mitosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: '¿Qué son las ciclinas y por qué se llaman así?',
+        opciones: [
+          'Son enzimas que fosforilan proteínas; se llaman así porque aceleran el ciclo celular',
+          'Son proteínas cuya concentración oscila (sube y baja) a lo largo del ciclo celular',
+          'Son complejos de dos proteínas que regulan la entrada a la fase S solamente',
+          'Son proteínas de la lámina nuclear que se disuelven en la mitosis'
+        ],
+        correcta: 1,
+        explicacion: 'Las ciclinas se llaman así porque su concentración fluctúa o "cicla" durante el ciclo celular: aumentan en ciertos momentos y luego se degradan. Son esenciales porque, al unirse a las quinasas dependientes de ciclinas (CDK), forman los complejos que regulan el pasaje entre las fases del ciclo (FPS para G1→S, y FPM para G2→M).'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá con tus palabras qué significa "control del ciclo celular". ¿Por qué es importante que exista ese control? Mencioná al menos un ejemplo concreto de cómo funciona.',
+        pistas: 'Pensá en qué pasaría si las células se dividieran sin ningún control. Mencioná ciclinas o quinasas si podés.',
+        clave: 'Control del ciclo celular: mecanismo que regula cuándo y cómo se divide una célula. Importancia: evitar divisiones descontroladas (como en el cáncer) y asegurar que la célula esté preparada. Ejemplo: las ciclinas G1 deben acumularse para que las CDK2 formen el FPS y la célula entre en fase S; si no hay ciclinas, la célula no se divide.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Las células cardíacas adultas no se dividen y permanecen en la etapa G0. ¿Qué significa esto?',
+        opciones: [
+          'Están en un proceso de muerte celular programada',
+          'Continúan su actividad metabólica normal pero no ingresan a la fase S ni se reproducen',
+          'Su ADN está completamente condensado y no pueden transcribir genes',
+          'Se dividen muy lentamente, con una G1 extremadamente larga'
+        ],
+        correcta: 1,
+        explicacion: 'Las células en G0 salen del ciclo celular desde G1 y continúan realizando sus funciones metabólicas normales, pero no ingresan a la fase S (donde ocurre la duplicación del ADN) y por lo tanto no se reproducen. Esto es diferente a la apoptosis (muerte celular) y no implica condensación del ADN ni incapacidad de transcripción.'
+      }
+    ]
+  },
+  {
+    id: 'adn',
+    icono: '🧬',
+    nombre: 'ADN: replicación y mutaciones',
+    descripcion: 'Duplicación semiconservativa, horquillas de replicación y tipos de mutaciones',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: '¿Por qué se dice que la replicación del ADN es "semiconservativa"?',
+        opciones: [
+          'Porque solo la mitad del ADN se duplica en cada ciclo',
+          'Porque cada molécula nueva conserva una hebra de la molécula original y tiene una hebra nueva',
+          'Porque la ADN polimerasa conserva la mitad de los errores que comete',
+          'Porque en procariontes solo hay un origen de replicación'
+        ],
+        correcta: 1,
+        explicacion: 'Semiconservativa significa que cada nueva molécula de ADN está formada por una cadena "vieja" (de la molécula original) y una cadena "nueva" (recién sintetizada). La molécula nueva conserva la mitad del ADN original. Esto fue demostrado experimentalmente y es una característica fundamental de la replicación tanto en procariontes como en eucariontes.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una mutación puntual por deleción en el ADN que codifica para una proteína, generalmente produce:',
+        opciones: [
+          'Un cambio de un solo aminoácido en la proteína, sin afectar el resto de la cadena',
+          'Una proteína que termina antes de tiempo porque aparece un codón stop',
+          'Un corrimiento del marco de lectura que altera todos los aminoácidos desde el punto de la mutación',
+          'Una mutación silenciosa que no cambia la secuencia de aminoácidos'
+        ],
+        correcta: 2,
+        explicacion: 'La deleción (pérdida de una o más bases) corre el marco de lectura: desde ese punto, todos los codones cambian, produciendo una proteína con una secuencia de aminoácidos completamente diferente a la normal. Esto es distinto de la sustitución (que solo cambia un aminoácido) y generalmente produce proteínas no funcionales. La mutación silenciosa es un subtipo de sustitución donde el nuevo codón codifica el mismo aminoácido.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Describí el proceso de replicación del ADN mencionando: el rol de la helicasa, la ADN polimerasa y el mecanismo de corrección de pruebas. ¿Por qué este mecanismo de corrección es importante para la célula?',
+        pistas: 'Recordá en qué dirección lee la ADN polimerasa y qué son la cadena adelantada y la rezagada.',
+        clave: 'Helicasa: separa las dos hebras rompiendo puentes hidrógeno, formando la horquilla de replicación. ADN polimerasa: lee la hebra molde en 3\'→5\' y sintetiza la nueva en 5\'→3\'. Mecanismo corrector: detecta nucleótidos mal incorporados, retrocede e hidroliza el error. Importancia: reduce drasticamente las mutaciones, aunque no corrige el 100% de los errores.'
+      }
+    ]
+  },
+  {
+    id: 'expresion',
+    icono: '📜',
+    nombre: 'Expresión génica',
+    descripcion: 'Transcripción, traducción, código genético y maduración del ARNm',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'En la transcripción, la ARN polimerasa lee la hebra molde de ADN en sentido 3\'→5\' y sintetiza el ARN en sentido:',
+        opciones: [
+          '3\'→5\', igual que la cadena molde',
+          '5\'→3\', complementario a la molde',
+          'Puede ser en cualquier sentido según el gen',
+          'Solo en procariontes, en eucariontes es al revés'
+        ],
+        correcta: 1,
+        explicacion: 'La ARN polimerasa siempre sintetiza el ARN en dirección 5\'→3\'. Lee la hebra molde de ADN en sentido 3\'→5\' y va agregando ribonucleótidos complementarios en dirección 5\'→3\'. La cadena resultante de ARN tendrá la misma secuencia que la cadena codificante de ADN (con U en lugar de T).'
+      },
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de las siguientes características describe correctamente el código genético?',
+        opciones: [
+          'Es ambiguo: un mismo aminoácido puede ser codificado por un solo codón',
+          'Es universal: el mismo codón codifica el mismo aminoácido en todos los seres vivos',
+          'No es redundante: cada codón codifica un aminoácido diferente',
+          'Varía entre procariontes y eucariontes'
+        ],
+        correcta: 1,
+        explicacion: 'El código genético es universal (el mismo codón significa lo mismo en bacterias, plantas o animales), no ambiguo (cada codón especifica solo un aminoácido, aunque puede haber varios codones para el mismo aminoácido) y redundante o degenerado (múltiples codones pueden codificar para el mismo aminoácido, como UUA y UUG que ambos codifican leucina).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Durante la traducción, ¿cuál es la función del ARN de transferencia (ARNt)?',
+        opciones: [
+          'Copiar la información del ADN para llevarla al ribosoma',
+          'Formar parte estructural del ribosoma junto con proteínas ribosomales',
+          'Transportar aminoácidos al ribosoma y reconocer el codón del ARNm mediante su anticodón',
+          'Cortar y eliminar los intrones del ARNm antes de la traducción'
+        ],
+        correcta: 2,
+        explicacion: 'El ARNt tiene una doble función: transporta un aminoácido específico desde el citoplasma hasta el ribosoma, y actúa como "adaptador" reconociendo el codón del ARNm mediante su anticodón complementario. El ARNm lleva la información del ADN, el ARNr forma parte estructural del ribosoma, y el splicing que elimina intrones ocurre antes de la traducción (y no la realiza el ARNt).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El splicing alternativo permite que a partir de un mismo gen se puedan obtener:',
+        opciones: [
+          'Más de un tipo de ARNm maduro y por lo tanto más de una proteína diferente',
+          'Múltiples copias idénticas del mismo ARNm para aumentar la producción proteica',
+          'ARNm con intrones adicionales para alargar la proteína resultante',
+          'Un único ARNm más estable gracias al cap 5\' y la cola poli-A'
+        ],
+        correcta: 0,
+        explicacion: 'El splicing alternativo consiste en que el mismo transcripto primario puede procesarse de maneras distintas: algunas secuencias que en un caso son intrones (se eliminan) en otro caso son exones (se conservan). El resultado es que a partir de un mismo gen se pueden obtener diferentes ARNm maduros y, en consecuencia, proteínas con funciones distintas. Esto aumenta enormemente la complejidad proteica de los organismos eucariontes.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá el "Dogma Central de la Biología Molecular". ¿Qué dos procesos conectan al ADN con las proteínas y en qué lugar de la célula eucarionte ocurre cada uno?',
+        pistas: 'Pensá en el flujo de información: ADN → ARNm → Proteína. ¿Dónde está el núcleo? ¿Dónde están los ribosomas?',
+        clave: 'Dogma Central: ADN → (transcripción) → ARNm → (traducción) → Proteína. Transcripción: ocurre en el núcleo, la ARN polimerasa fabrica ARNm complementario a la hebra molde del gen. El ARNm madura (capping, poliadenilación, splicing) y sale al citoplasma. Traducción: ocurre en el citoplasma en los ribosomas, donde los ARNt llevan aminoácidos y el ribosoma ensambla la cadena polipeptídica según la secuencia de codones del ARNm.'
+      }
+    ]
+  },
+  {
+    id: 'division',
+    icono: '⚡',
+    nombre: 'División celular: mitosis y meiosis',
+    descripcion: 'Fases de la mitosis, meiosis y variabilidad genética',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'En la anafase de la mitosis, ¿qué es lo que se separa y migra hacia los polos?',
+        opciones: [
+          'Los cromosomas homólogos',
+          'Las cromátidas hermanas, que son arrastradas por las fibras del huso',
+          'Los cromosomas enteros sin separarse del centrómero',
+          'Los núcleos completos de cada célula hija'
+        ],
+        correcta: 1,
+        explicacion: 'En la anafase mitótica, las cromátidas hermanas (unidas hasta ese momento por el centrómero) se separan. Cada cromátida es arrastrada hacia un polo opuesto de la célula por las fibras del huso acromático, que se acortan. La separación de cromosomas homólogos ocurre en la Anafase I de la meiosis, no en la mitosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El crossing-over (recombinación genética) que ocurre en la Profase I de la meiosis tiene como consecuencia que:',
+        opciones: [
+          'Los cromosomas se condensan más rápidamente para facilitar su separación',
+          'Las cromátidas hermanas ya no son genéticamente idénticas entre sí',
+          'El número de cromosomas se reduce a la mitad antes de la Metafase I',
+          'Se forman cuatro células con el mismo número de cromosomas que la célula madre'
+        ],
+        correcta: 1,
+        explicacion: 'El crossing-over es el intercambio de segmentos de ADN entre cromosomas homólogos apareados. Como resultado, cada cromátida incorpora material genético del cromosoma homólogo. Las cromátidas hermanas, que antes del crossing-over eran idénticas, ahora tienen combinaciones genéticas diferentes. Esto contribuye enormemente a la variabilidad genética de las gametas producidas por la meiosis.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Una persona tiene el síndrome de Down (trisomía 21). ¿Cuál fue el origen más probable de esta condición?',
+        opciones: [
+          'Una mutación puntual por sustitución en el cromosoma 21',
+          'Un error en el crossing-over durante la Profase I de la meiosis',
+          'Una no disyunción durante la anafase I o II de la meiosis, produciendo una gameta con un cromosoma 21 extra',
+          'Una mutación en las células somáticas del embrión durante las primeras divisiones mitóticas'
+        ],
+        correcta: 2,
+        explicacion: 'La trisomía 21 ocurre cuando la célula tiene 47 cromosomas en vez de 46, con tres copias del cromosoma 21. El origen es una no disyunción durante la meiosis: en la anafase I (si los homólogos 21 no se separan) o en la anafase II (si las cromátidas hermanas no se separan). El resultado es una gameta con 24 cromosomas que, al fecundarse con una gameta normal de 23, origina un cigoto de 47 cromosomas.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Compará la mitosis y la meiosis: ¿en qué se parecen y en qué se diferencian? Mencioná al menos tres diferencias importantes y explicá para qué sirve cada proceso.',
+        pistas: 'Pensá en: número de divisiones, número de células hijas, material genético de las hijas, dónde ocurren en el cuerpo y para qué sirven.',
+        clave: 'Similitudes: ambas tienen profase, metafase, anafase y telofase (aunque en meiosis hay dos rondas). Diferencias: 1) Mitosis: 1 división → 2 células hijas diploides (2n) genéticamente iguales a la madre. Meiosis: 2 divisiones → 4 células haploides (n) genéticamente diferentes. 2) La meiosis incluye el crossing-over y la separación de homólogos (Meiosis I). 3) La mitosis sirve para el crecimiento y regeneración de tejidos; la meiosis produce gametas para la reproducción sexual. 4) La meiosis solo ocurre en las gónadas (ovarios y testículos).'
+      }
+    ]
+  },
+  {
+    id: 'evolucion_teorias',
+    icono: '🦕',
+    nombre: 'Teorías evolutivas',
+    descripcion: 'Lamarck, Darwin-Wallace, teoría sintética y sus diferencias',
+    repaso: [
+      {
+        titulo: 'Conceptos previos: fijismo y transformismo',
+        contenido: `<p><strong>Fijismo:</strong> creencia de que las especies fueron creadas una única vez y no han cambiado. Las especies son inmutables.</p>
+<p><strong>Transformismo:</strong> las especies cambian con el paso del tiempo, dando origen a nuevas especies. Las teorías evolutivas explican cómo ocurre ese cambio.</p>
+<p><strong>Creacionismo:</strong> doctrina que sostiene que los seres vivos surgieron de un acto creador y no son fruto de la evolución.</p>
+<p><strong>Evolución:</strong> proceso por el cual las especies cambian a lo largo del tiempo (millones de años) y originan nuevas especies que comparten un ancestro común. Los cambios deben ser <strong>heredables</strong>: transmisibles de padres a hijos a través del ADN.</p>`
+      },
+      {
+        titulo: 'Teoría de Lamarck',
+        contenido: `<p>Lamarck propuso que los organismos cambian <strong>según sus necesidades</strong>, y esos cambios se transmiten a la descendencia. En su época no se conocía el ADN ni la genética.</p>
+<p>Sus ideas principales:</p>
+<ul>
+  <li>El ambiente cambia y genera necesidades en los individuos.</li>
+  <li>Existe una tendencia inconsciente de adaptarse al ambiente.</li>
+  <li>El <strong>uso</strong> frecuente de un órgano lo desarrolla más; el <strong>desuso</strong> lo atrofia y puede hacerlo desaparecer.</li>
+  <li>Los cambios adquiridos durante la vida <strong>se heredan</strong> (herencia de los caracteres adquiridos).</li>
+</ul>
+<p><strong>La unidad de evolución es el individuo:</strong> lo que cambia es el individuo a lo largo de su propia vida.</p>
+<p>Ejemplo clásico — la jirafa según Lamarck: el ancestro de cuello corto estiraba el cuello para alcanzar hojas más altas → el cuello se alargaba durante su vida → ese cuello más largo se heredaba a los hijos.</p>
+<p>Hoy se considera <strong>falsa</strong>: los cambios fenotípicos no modifican el ADN y por lo tanto no se heredan.</p>`
+      },
+      {
+        titulo: 'Teoría de Darwin-Wallace',
+        contenido: `<p>Darwin y Wallace desarrollaron una teoría similar de forma independiente. Tampoco conocían el ADN, pero sus observaciones fueron mucho más acertadas.</p>
+<p>Sus ideas principales:</p>
+<ul>
+  <li>Todas las especies tienen potencial para multiplicarse geométricamente, pero las <strong>presiones ambientales</strong> (competencia por recursos) lo impiden.</li>
+  <li>Los individuos de una misma especie <strong>no son todos iguales</strong>: presentan variaciones heredables.</li>
+  <li>Los individuos con variaciones más favorables para un ambiente tienen <strong>más probabilidades de sobrevivir y reproducirse</strong>.</li>
+  <li>El ambiente <strong>selecciona</strong> a los mejor adaptados: eso es la <strong>selección natural</strong>.</li>
+  <li>Con el tiempo, las especies cambian gradualmente y originan nuevas especies.</li>
+</ul>
+<div class="comparacion">
+  <div class="col-teoria roja">
+    <h4>Lamarck — jirafa</h4>
+    El individuo estira el cuello → el cuello crece durante su vida → hereda ese cuello más largo.
+  </div>
+  <div class="col-teoria">
+    <h4>Darwin — jirafa</h4>
+    Ya existen jirafas con distintos largos de cuello. Las de cuello más largo llegan más hojas → sobreviven y se reproducen más → su descendencia hereda ese cuello largo.
+  </div>
+</div>
+<p><strong>"Los más aptos" no son los más fuertes ni los mejores</strong>, sino los que tienen características más ventajosas en ese ambiente en particular. Si el ambiente cambia, lo que era ventajoso puede dejar de serlo.</p>`
+      },
+      {
+        titulo: 'Teoría sintética (neodarwinismo)',
+        contenido: `<p>Con los aportes de Mendel, el descubrimiento del ADN y la genética moderna, la teoría de Darwin fue actualizada y es hoy la explicación científica aceptada.</p>
+<p>Lo que la genética explicó que Darwin no pudo:</p>
+<ul>
+  <li><strong>Herencia:</strong> la información se transmite a través del ADN, solo lo que está en las gametas se hereda.</li>
+  <li><strong>Variabilidad:</strong> surge de las mutaciones, el crossing-over y la segregación al azar de cromosomas homólogos en la meiosis.</li>
+</ul>
+<p>Principios clave de la teoría sintética:</p>
+<ul>
+  <li>La variabilidad genética es <strong>al azar</strong>: no tiene propósito ni dirección.</li>
+  <li>Los cambios fenotípicos <strong>no modifican el genotipo</strong> (se descarta a Lamarck).</li>
+  <li>La selección natural actúa sobre el <strong>fenotipo</strong> e indirectamente sobre el genotipo.</li>
+  <li>La <strong>unidad de evolución es la población</strong>, no el individuo.</li>
+  <li>Hay evolución cuando cambian las <strong>frecuencias génicas</strong> de una población.</li>
+</ul>
+<p><strong>Pool génico:</strong> conjunto de todos los alelos presentes en una población. <strong>Frecuencia génica:</strong> proporción de cada alelo en ese pool.</p>`
+      }
+    ],
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'Según Lamarck, ¿cuál es la causa que origina un nuevo órgano o la transformación de uno existente?',
+        opciones: [
+          'Una mutación al azar en el ADN de las gametas',
+          'La selección natural que favorece a los individuos con variaciones heredadas',
+          'Una necesidad generada por el cambio del ambiente, con tendencia inconsciente a adaptarse',
+          'La deriva génica en poblaciones de tamaño reducido'
+        ],
+        correcta: 2,
+        explicacion: 'Lamarck propuso que los cambios ambientales generan necesidades en los individuos, y esas necesidades producen la transformación de órganos por uso o desuso. En su época no se conocía el ADN ni las mutaciones. Hoy esta idea se considera incorrecta: los cambios fenotípicos adquiridos durante la vida no se transmiten al ADN ni se heredan.'
+      },
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de estas afirmaciones corresponde a Darwin-Wallace y NO a Lamarck?',
+        opciones: [
+          'Los individuos cambian durante su vida para adaptarse al ambiente',
+          'Los cambios adquiridos se transmiten a la descendencia',
+          'Ya existen variaciones en la población; el ambiente selecciona a los más aptos',
+          'El uso frecuente de un órgano lo desarrolla más'
+        ],
+        correcta: 2,
+        explicacion: 'Darwin-Wallace propuso que ya existen variaciones heredables dentro de la población, y la selección natural favorece a quienes tienen las variantes más ventajosas para ese ambiente. Las otras tres opciones describen ideas de Lamarck (uso/desuso, herencia de caracteres adquiridos, cambio individual por necesidad), que hoy se consideran incorrectas.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'La teoría sintética de la evolución combina:',
+        opciones: [
+          'La teoría de Lamarck con los conocimientos de genética',
+          'La teoría de Darwin con los conocimientos de genética molecular',
+          'El fijismo con el transformismo',
+          'La teoría de Darwin con la teoría de Lamarck por igual'
+        ],
+        correcta: 1,
+        explicacion: 'La teoría sintética (neodarwinismo) integra la teoría de Darwin con los aportes de la genética: ADN, mutaciones, meiosis, crossing-over. Esto permitió explicar el origen de la variabilidad y el mecanismo de la herencia, que Darwin no podía explicar en su época. La teoría de Lamarck quedó descartada al demostrarse que los cambios fenotípicos no modifican el ADN.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Según la teoría sintética, hay evolución en una población cuando:',
+        opciones: [
+          'Aparece un individuo con características muy distintas a las de los demás',
+          'Cambian las frecuencias génicas (proporciones de alelos) en el pool génico',
+          'El ambiente cambia y obliga a los individuos a adaptarse',
+          'Una especie aumenta considerablemente su número de individuos'
+        ],
+        correcta: 1,
+        explicacion: 'En la teoría sintética, la unidad de evolución es la población, no el individuo. Hay evolución cuando cambia la proporción de alelos (frecuencias génicas) en el pool génico de la población a lo largo del tiempo. Un individuo aislado no evoluciona; lo que evoluciona es la distribución de alelos en la población completa.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Un alumno afirma: "Las jirafas desarrollaron el cuello largo porque necesitaban alcanzar las hojas más altas de los árboles." ¿A qué teoría corresponde ese razonamiento?',
+        opciones: [
+          'Darwin-Wallace, porque describe selección natural',
+          'Teoría sintética, porque menciona una adaptación',
+          'Lamarck, porque atribuye el cambio a una necesidad del individuo',
+          'Neutralismo, porque el cambio es al azar'
+        ],
+        correcta: 2,
+        explicacion: 'La frase "necesitaban y por eso lo desarrollaron" es lamarckiana: el individuo cambia porque tiene necesidad de adaptarse. Darwin diría: ya existían jirafas con distinto largo de cuello; las de cuello más largo comían más y dejaban más descendencia; gradualmente el cuello largo se hizo más frecuente en la población. El ambiente selecciona; no genera el cambio en el individuo.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá con tus palabras la diferencia entre la explicación de Lamarck y la de Darwin sobre cómo surgió el cuello largo de la jirafa. ¿Por qué la explicación de Lamarck se considera incorrecta hoy?',
+        pistas: 'Pensá en quién cambia: ¿el individuo durante su vida o la frecuencia de un rasgo en la población? ¿Qué dice la genética sobre la herencia de los cambios fenotípicos?',
+        clave: 'Lamarck: el ancestro de cuello corto estiraba el cuello durante su vida → ese cuello más largo se transmitía a los hijos. Darwin: en la población ya había jirafas con distinto largo de cuello; las de cuello más largo llegaban a más alimento → sobrevivían y se reproducían más → el cuello largo se volvió más frecuente en la población (selección natural). Lamarck es incorrecto porque los cambios fenotípicos no modifican el ADN (dogma central); solo lo que está en las gametas se hereda.'
+      }
+    ]
+  },
+  {
+    id: 'evolucion_causas',
+    icono: '🧬',
+    nombre: 'Causas de evolución y especiación',
+    descripcion: 'Selección natural, deriva génica, flujo génico, mutaciones y origen de nuevas especies',
+    repaso: [
+      {
+        titulo: 'Las cuatro causas de evolución',
+        contenido: `<p>Según la teoría sintética, hay cuatro mecanismos que cambian las frecuencias génicas de una población:</p>
+<p><span class="etiqueta verde">1. Selección natural</span> El ambiente favorece a los individuos con variaciones más ventajosas, que sobreviven y dejan más descendencia. La selección actúa sobre el <strong>fenotipo</strong> e indirectamente sobre el genotipo. Una característica ventajosa en un ambiente puede ser desventajosa en otro.</p>
+<p><span class="etiqueta verde">2. Mutaciones</span> Cambios en la secuencia del ADN. Son la única fuente de <strong>alelos completamente nuevos</strong>. Ocurren al azar y pueden ser ventajosas, neutras o desventajosas según el ambiente. Solo se heredan si ocurren en las gametas.</p>
+<p><span class="etiqueta verde">3. Flujo génico (migraciones)</span> Entrada (inmigración) o salida (emigración) de individuos en una población. Los migrantes introducen o retiran alelos, cambiando las frecuencias génicas.</p>
+<p><span class="etiqueta verde">4. Deriva génica</span> Cambio al azar en las frecuencias génicas, especialmente en poblaciones pequeñas. No es selección natural: los individuos no sobreviven por ser más aptos. Tiene dos formas:</p>
+<ul>
+  <li><strong>Cuello de botella:</strong> una catástrofe elimina a la mayoría de individuos al azar. Los sobrevivientes fundan una población con frecuencias génicas muy distintas a la original.</li>
+  <li><strong>Efecto fundador:</strong> un grupo pequeño se separa y funda una nueva colonia. Los alelos que portaban (aunque fueran raros antes) pueden volverse muy frecuentes en la nueva población.</li>
+</ul>`
+      },
+      {
+        titulo: 'Selección natural: cómo actúa sobre genes',
+        contenido: `<p>La selección natural <strong>no ve genotipos, ve fenotipos</strong>. Al seleccionar qué individuos sobreviven y se reproducen, indirectamente selecciona también los alelos que producen esos fenotipos.</p>
+<p>Ejemplo clásico — mariposas y troncos:</p>
+<ul>
+  <li>En troncos de color claro, las mariposas blancas (alelo recesivo <em>aa</em>) se camuflan mejor → sobreviven más → el alelo <em>a</em> aumenta en frecuencia.</li>
+  <li>Si la contaminación oscurece los troncos, las mariposas blancas pasan a ser más visibles → son devoradas más → el alelo dominante <em>A</em> (alas oscuras) aumenta en frecuencia.</li>
+</ul>
+<p>Otro ejemplo — resistencia bacteriana a antibióticos o insectos a insecticidas: las bacterias no "desarrollan" resistencia al antibiótico. Ya existían algunas con una mutación de resistencia. Al aplicar el antibiótico, las sensibles mueren; las resistentes sobreviven y se reproducen → la resistencia se propaga.</p>
+<p><strong>Importante:</strong> Los seres vivos no cambian <em>para</em> adaptarse. Los cambios son al azar; la selección decide cuáles perduran.</p>`
+      },
+      {
+        titulo: 'Neutralismo',
+        contenido: `<p>El neutralismo sostiene que <strong>muchas mutaciones no tienen valor adaptativo</strong>: son ni mejores ni peores que los alelos que reemplazan.</p>
+<p>Estos alelos neutros se propagan o desaparecen en la población <strong>por azar</strong> (deriva génica), no por selección natural.</p>
+<p>Esto explica la enorme variabilidad genética que se observa dentro de las poblaciones, que no siempre puede explicarse por ventajas adaptativas.</p>`
+      },
+      {
+        titulo: 'Especiación: cómo surgen nuevas especies',
+        contenido: `<p>La <strong>especiación</strong> es el surgimiento de dos o más especies distintas a partir de una especie original.</p>
+<p>El mecanismo central es el <strong>aislamiento reproductivo</strong>: cuando dos grupos de una misma población dejan de cruzarse entre sí, cada uno evoluciona por separado. Con el tiempo acumulan tantas diferencias que, si se encontraran, ya no podrían reproducirse.</p>
+<p>Hay dos modelos principales:</p>
+<div class="comparacion">
+  <div class="col-teoria">
+    <h4>Especiación alopátrida</h4>
+    Una barrera geográfica (montaña, río, océano) divide a la población en dos grupos que quedan aislados físicamente. Cada grupo evoluciona por separado. Con el tiempo se convierten en dos especies distintas.
+  </div>
+  <div class="col-teoria">
+    <h4>Especiación simpátrida</h4>
+    Sin barrera geográfica: el aislamiento surge por diferencias de comportamiento (distintos horarios de reproducción, preferencias de nicho). Grupos que conviven en el mismo lugar dejan de cruzarse entre sí y divergen.
+  </div>
+</div>
+<p>Este proceso, acumulado durante 3800 millones de años, explica la enorme diversidad de organismos que existen y existieron en la Tierra.</p>`
+      }
+    ],
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: '¿Cuál de las siguientes opciones lista correctamente las cuatro causas de evolución reconocidas por la teoría sintética?',
+        opciones: [
+          'Mutaciones, selección natural, flujo génico y deriva génica',
+          'Mutaciones, uso/desuso, herencia de caracteres adquiridos y selección natural',
+          'Selección natural, especiación, generación espontánea y fijismo',
+          'Mutaciones, extinción, adaptación y flujo génico'
+        ],
+        correcta: 0,
+        explicacion: 'Las cuatro causas de evolución son: mutaciones (generan nuevos alelos), selección natural (favorece las variantes más adaptadas), flujo génico (entrada o salida de alelos por migración) y deriva génica (cambio al azar, incluye cuello de botella y efecto fundador). Uso/desuso y herencia de caracteres adquiridos son ideas de Lamarck, hoy descartadas.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Se aplica un insecticida a una población de mosquitos. Al tiempo, reaparece la plaga y el insecticida ya no tiene efecto. ¿Cuál es la explicación correcta según la teoría sintética?',
+        opciones: [
+          'Los mosquitos desarrollaron resistencia al entrar en contacto con el insecticida',
+          'Algunos mosquitos ya tenían una mutación de resistencia antes de la aplicación; sobrevivieron y se reprodujeron',
+          'El insecticida indujo mutaciones en todos los mosquitos que los volvió resistentes',
+          'Los mosquitos emigraron de otra zona sin resistencia y se mezclaron con los locales'
+        ],
+        correcta: 1,
+        explicacion: 'La explicación correcta es la darwiniana: en la población ya existían algunos mosquitos con una mutación de resistencia (variabilidad preexistente). Al aplicar el insecticida, los sensibles murieron y los resistentes sobrevivieron y se reprodujeron. La resistencia se propagó. Decir que "desarrollaron resistencia" al entrar en contacto es la explicación lamarckiana, que es incorrecta.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El efecto fundador es un tipo de deriva génica que ocurre cuando:',
+        opciones: [
+          'Una catástrofe elimina al azar a la mayoría de individuos de una población',
+          'Un grupo pequeño de individuos se separa y funda una nueva población con frecuencias génicas distintas a la original',
+          'El ambiente selecciona a los individuos más aptos de una población',
+          'Ingresan nuevos alelos a una población mediante inmigración de individuos de otra población'
+        ],
+        correcta: 1,
+        explicacion: 'El efecto fundador ocurre cuando pocos individuos se separan y fundan una nueva colonia. Esos individuos, al ser pocos, pueden portar alelos que eran raros en la población original pero que se vuelven frecuentes en la nueva población. No hay selección natural: el cambio es al azar. El cuello de botella, en cambio, implica una catástrofe que reduce la población existente.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'La especiación alopátrida se diferencia de la simpátrida en que:',
+        opciones: [
+          'Solo la alopátrida produce nuevas especies; la simpátrida no lo logra',
+          'En la alopátrida el aislamiento es causado por una barrera geográfica; en la simpátrida el aislamiento surge sin barrera física',
+          'La simpátrida requiere millones de años; la alopátrida puede ocurrir en pocas generaciones',
+          'La alopátrida afecta solo a animales; la simpátrida también puede afectar a plantas'
+        ],
+        correcta: 1,
+        explicacion: 'La diferencia clave es el mecanismo de aislamiento: en la especiación alopátrida, una barrera geográfica (montaña, río, etc.) divide físicamente a la población. En la simpátrida, el aislamiento reproductivo ocurre aunque los grupos convivan en el mismo territorio, por diferencias de comportamiento, preferencias de apareamiento u otras barreras biológicas.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'La selección natural actúa directamente sobre:',
+        opciones: [
+          'Los alelos recesivos del pool génico',
+          'La variabilidad fenotípica de los individuos de la población',
+          'Las mutaciones antes de que ocurran en el ADN',
+          'El tamaño de la población en cada generación'
+        ],
+        correcta: 1,
+        explicacion: 'La selección natural "observa" los fenotipos: los individuos con fenotipos más ventajosos sobreviven y se reproducen más. Al seleccionar fenotipos, indirectamente selecciona los genotipos (alelos) que los producen. Los alelos recesivos ocultos en individuos heterocigotas están protegidos de la selección porque no se expresan fenotípicamente.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Describí qué es la deriva génica y explicá la diferencia entre el cuello de botella y el efecto fundador. ¿En qué se diferencia la deriva génica de la selección natural?',
+        pistas: 'Pensá en si los cambios son al azar o dirigidos. ¿Qué tienen en común el cuello de botella y el efecto fundador? ¿Cuál es el papel del tamaño de la población?',
+        clave: 'Deriva génica: cambio en las frecuencias génicas de una población causado por el azar, especialmente importante en poblaciones pequeñas. Cuello de botella: una catástrofe elimina aleatoriamente a la mayoría; los pocos sobrevivientes fundan la nueva población con frecuencias génicas distintas (no por ser más aptos sino por sobrevivir al azar). Efecto fundador: un grupo pequeño se separa y funda una nueva colonia; los alelos de ese grupo pequeño determinan las frecuencias de la nueva población. Diferencia con selección natural: en la selección natural los cambios son dirigidos (los más aptos sobreviven); en la deriva génica los cambios son al azar, sin importar si los individuos son más o menos aptos.'
+      }
+    ]
+  },
+  {
+    id: 'genetica',
+    icono: '🌱',
+    nombre: 'Genética mendeliana',
+    descripcion: 'Leyes de Mendel, dominancia, codominancia y herencia ligada al sexo',
+    preguntas: [
+      {
+        tipo: 'mc',
+        texto: 'Una planta heterocigota (Rr) para el color de flores se autofecunda. ¿Qué proporción de la descendencia tendrá flores rojas si R (rojo) es dominante sobre r (blanco)?',
+        opciones: [
+          '100% flores rojas',
+          '50% flores rojas y 50% flores blancas',
+          '75% flores rojas y 25% flores blancas',
+          '25% flores rojas y 75% flores blancas'
+        ],
+        correcta: 2,
+        explicacion: 'Al cruzar Rr × Rr se obtienen: RR (25%), Rr (50%) y rr (25%). Los genotipos RR y Rr expresan fenotipo rojo (3 de cada 4 individuos) y solo rr expresa fenotipo blanco (1 de cada 4). Entonces la proporción fenotípica es 3:1 (75% rojas : 25% blancas). Esta es la proporción clásica de la segunda generación filial (F2) de Mendel.'
+      },
+      {
+        tipo: 'mc',
+        texto: 'Un hombre con visión normal cuyo padre era daltónico, ¿puede transmitir el gen del daltonismo a sus hijos? ¿Por qué?',
+        opciones: [
+          'Sí, porque lleva el alelo en su cromosoma Y heredado del padre',
+          'No, porque el daltonismo es una enfermedad que solo la heredan las mujeres',
+          'No, porque el hombre tiene solo un cromosoma X y si lleva el alelo recesivo, sería daltónico',
+          'Sí, si fuera portador del alelo recesivo en su cromosoma X'
+        ],
+        correcta: 2,
+        explicacion: 'El gen del daltonismo está en el cromosoma X. Los hombres son hemicigotas (tienen solo un X). Si ese X tiene el alelo recesivo del daltonismo, el hombre es daltónico, no portador. Un hombre con visión normal tiene el alelo dominante (M) en su único X. Su padre daltónico le transmitió el cromosoma Y (no el X), y su madre le dio el X con visión normal. Por lo tanto, el hombre no puede ser portador: o tiene visión normal (X^M Y) o es daltónico (X^m Y).'
+      },
+      {
+        tipo: 'mc',
+        texto: 'El grupo sanguíneo AB humano es un ejemplo de:',
+        opciones: [
+          'Dominancia incompleta, donde los alelos A y B producen un fenotipo intermedio',
+          'Codominancia, donde ambos alelos A y B se expresan completamente al mismo tiempo',
+          'Dominancia completa de A sobre B',
+          'Herencia ligada al sexo'
+        ],
+        correcta: 1,
+        explicacion: 'El grupo AB es el ejemplo clásico de codominancia: los alelos A y B se expresan ambos por completo en el individuo AB, produciendo antígenos A y B simultáneamente en los glóbulos rojos. En la dominancia incompleta (como las flores rosadas del malvón), ninguno domina completamente y el fenotipo es intermedio. En AB, no hay mezcla sino expresión completa de los dos alelos.'
+      },
+      {
+        tipo: 'desarrollo',
+        texto: 'Explicá la diferencia entre genotipo y fenotipo usando un ejemplo concreto. ¿Por qué dos individuos con el mismo fenotipo pueden tener genotipos diferentes?',
+        pistas: 'Usá el ejemplo de flores rojas y blancas, o el de los grupos sanguíneos.',
+        clave: 'Genotipo: la información genética del individuo (ej: RR o Rr). Fenotipo: cómo se expresa esa información (ej: flor roja). Dos individuos con el mismo fenotipo pueden tener genotipos diferentes por la dominancia: RR (homocigota dominante) y Rr (heterocigota) tienen flores rojas idénticas visualmente, pero sus genotipos son distintos. Esto se puede demostrar con cruzamientos: RR × rr → 100% rojas; Rr × rr → 50% rojas, 50% blancas.'
+      }
+    ]
+  }
+];
+
+let temasSeleccionados = [];
+let preguntasActuales = [];
+let indexActual = 0;
+let respuestas = [];
+
+function inicializar() {
+  const grid = document.getElementById('temas-grid');
+  grid.innerHTML = '';
+  TEMAS.forEach((t, i) => {
+    grid.innerHTML += `
+      <div class="tema-card" id="tema-${i}" onclick="toggleTema(${i})">
+        <span class="check-mark">✓</span>
+        <div class="tema-icono">${t.icono}</div>
+        <h3>${t.nombre}</h3>
+        <p>${t.descripcion}</p>
+      </div>`;
+  });
+}
+
+function toggleTema(i) {
+  const card = document.getElementById('tema-' + i);
+  const idx = temasSeleccionados.indexOf(i);
+  if (idx === -1) {
+    temasSeleccionados.push(i);
+    card.classList.add('seleccionada');
+  } else {
+    temasSeleccionados.splice(idx, 1);
+    card.classList.remove('seleccionada');
+  }
+  document.getElementById('btn-empezar').disabled = temasSeleccionados.length === 0;
+}
+
+function empezarExamen() {
+  if (temasSeleccionados.length === 0) return;
+
+  // Construir fichas de repaso para los temas seleccionados
+  const fichasContainer = document.getElementById('fichas-container');
+  fichasContainer.innerHTML = '';
+
+  let hayRepaso = false;
+  temasSeleccionados.forEach(ti => {
+    const tema = TEMAS[ti];
+    if (!tema.repaso) return;
+    hayRepaso = true;
+    tema.repaso.forEach((ficha, fi) => {
+      const id = 'ficha-' + ti + '-' + fi;
+      const div = document.createElement('div');
+      div.className = 'ficha';
+      div.innerHTML = `
+        <div class="ficha-header" onclick="toggleFicha('${id}')">
+          <span class="ficha-titulo">${tema.nombre} — ${ficha.titulo}</span>
+          <span class="ficha-chevron" id="chev-${id}">▼</span>
+        </div>
+        <div class="ficha-body" id="${id}">${ficha.contenido}</div>`;
+      fichasContainer.appendChild(div);
+    });
+  });
+
+  if (hayRepaso) {
+    document.getElementById('pantalla-inicio').style.display = 'none';
+    document.getElementById('pantalla-repaso').style.display = 'block';
+    document.getElementById('badge-tema-header').textContent =
+      temasSeleccionados.map(i => TEMAS[i].nombre).join(' · ');
+  } else {
+    irAlExamen();
+  }
+}
+
+function toggleFicha(id) {
+  const body = document.getElementById(id);
+  const chev = document.getElementById('chev-' + id);
+  body.classList.toggle('visible');
+  chev.classList.toggle('abierto');
+}
+
+function irAlExamen() {
+  preguntasActuales = [];
+  temasSeleccionados.forEach(ti => {
+    preguntasActuales = preguntasActuales.concat(
+      TEMAS[ti].preguntas.map(p => ({ ...p, tema: TEMAS[ti].nombre }))
+    );
+  });
+  for (let i = preguntasActuales.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [preguntasActuales[i], preguntasActuales[j]] = [preguntasActuales[j], preguntasActuales[i]];
+  }
+  respuestas = new Array(preguntasActuales.length).fill(null);
+  indexActual = 0;
+
+  document.getElementById('pantalla-inicio').style.display = 'none';
+  document.getElementById('pantalla-repaso').style.display = 'none';
+  document.getElementById('pantalla-examen').style.display = 'block';
+  mostrarPregunta(0);
+}
+
+function mostrarPregunta(idx) {
+  const p = preguntasActuales[idx];
+  const total = preguntasActuales.length;
+  const pct = Math.round((idx / total) * 100);
+
+  document.getElementById('progreso-txt').textContent = `Pregunta ${idx + 1} de ${total}`;
+  document.getElementById('progreso-pct').textContent = pct + '%';
+  document.getElementById('progreso-fill').style.width = pct + '%';
+
+  const esFinal = idx === total - 1;
+  document.getElementById('btn-siguiente').textContent = esFinal ? 'Ver corrección →' : 'Siguiente →';
+
+  let html = `<div class="pregunta-bloque">
+    <div class="pregunta-num">
+      <span class="tag-tipo${p.tipo === 'desarrollo' ? ' desarrollo' : ''}">${p.tipo === 'mc' ? 'Opción múltiple' : 'Desarrollo'}</span>
+      ${p.tema}
+    </div>
+    <div class="pregunta-texto">${p.texto}</div>`;
+
+  if (p.tipo === 'mc') {
+    const letras = ['A','B','C','D'];
+    html += `<ul class="opciones">`;
+    p.opciones.forEach((op, oi) => {
+      const sel = respuestas[idx] === oi ? ' seleccionada' : '';
+      html += `<li class="opcion${sel}" onclick="seleccionarOpcion(${oi})">
+        <span class="opcion-letra">${letras[oi]}</span>
+        <span>${op}</span>
+      </li>`;
+    });
+    html += `</ul>`;
+  } else {
+    const val = respuestas[idx] || '';
+    html += `<textarea class="campo-desarrollo" id="campo-dev" placeholder="Escribí tu respuesta acá..." oninput="guardarDesarrollo()">${val}</textarea>
+      <p class="ayuda-desarrollo">Pista: ${p.pistas}</p>`;
+  }
+
+  html += `</div>`;
+  document.getElementById('preguntas-container').innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function seleccionarOpcion(oi) {
+  respuestas[indexActual] = oi;
+  document.querySelectorAll('.opcion').forEach((el, i) => {
+    el.classList.toggle('seleccionada', i === oi);
+  });
+}
+
+function guardarDesarrollo() {
+  const txt = document.getElementById('campo-dev').value;
+  respuestas[indexActual] = txt;
+}
+
+function siguiente() {
+  const p = preguntasActuales[indexActual];
+  if (p.tipo === 'mc' && respuestas[indexActual] === null) {
+    alert('Por favor seleccioná una opción antes de continuar.');
+    return;
+  }
+  if (p.tipo === 'desarrollo') {
+    const txt = document.getElementById('campo-dev') ? document.getElementById('campo-dev').value : (respuestas[indexActual] || '');
+    respuestas[indexActual] = txt;
+  }
+  if (indexActual < preguntasActuales.length - 1) {
+    indexActual++;
+    mostrarPregunta(indexActual);
+  } else {
+    mostrarResultados();
+  }
+}
+
+function volverInicio() {
+  temasSeleccionados = [];
+  document.getElementById('pantalla-examen').style.display = 'none';
+  document.getElementById('pantalla-resultados').style.display = 'none';
+  document.getElementById('pantalla-repaso').style.display = 'none';
+  document.getElementById('pantalla-inicio').style.display = 'block';
+  document.getElementById('badge-tema-header').textContent = '';
+  document.querySelectorAll('.tema-card').forEach(c => c.classList.remove('seleccionada'));
+  document.getElementById('btn-empezar').disabled = true;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function mostrarResultados() {
+  document.getElementById('pantalla-examen').style.display = 'none';
+  document.getElementById('pantalla-resultados').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const mcPregs = preguntasActuales.filter(p => p.tipo === 'mc');
+  const correctas = mcPregs.reduce((acc, p, i) => {
+    const realIdx = preguntasActuales.indexOf(p);
+    return acc + (respuestas[realIdx] === p.correcta ? 1 : 0);
+  }, 0);
+
+  let puntaje = 0, puntajeMax = 0;
+  preguntasActuales.forEach((p, i) => {
+    if (p.tipo === 'mc') {
+      puntajeMax += 2;
+      if (respuestas[i] === p.correcta) puntaje += 2;
+    } else {
+      puntajeMax += 3;
+    }
+  });
+
+  document.getElementById('puntaje-numero').textContent = `${puntaje} / ${puntajeMax} puntos`;
+
+  const pct = Math.round((puntaje / puntajeMax) * 100);
+  let msg = '';
+  if (pct >= 80) msg = '¡Excelente trabajo! Dominás muy bien los temas evaluados.';
+  else if (pct >= 60) msg = 'Muy bien. Hay algunos conceptos para repasar.';
+  else if (pct >= 40) msg = 'Bien encaminada. Te recomiendo releer los temas con errores.';
+  else msg = 'Seguí estudiando, ¡vas a mejorar con cada repaso!';
+  document.getElementById('puntaje-mensaje').textContent = msg;
+
+  const container = document.getElementById('correcciones-container');
+  container.innerHTML = '<p style="font-size:0.85rem;color:#888780;margin-bottom:1rem;">Hacé clic en cada pregunta para ver la explicación.</p>';
+
+  preguntasActuales.forEach((p, i) => {
+    const resp = respuestas[i];
+    let claseHeader, iconoHtml, tituloExtra;
+
+    if (p.tipo === 'mc') {
+      const esCorrecta = resp === p.correcta;
+      claseHeader = esCorrecta ? 'correcto' : 'incorrecto';
+      iconoHtml = esCorrecta ? '✓' : '✗';
+    } else {
+      claseHeader = 'desarrollo';
+      iconoHtml = '📝';
+    }
+
+    container.innerHTML += `
+      <div class="correccion-item" id="ci-${i}">
+        <div class="correccion-header ${claseHeader}" onclick="toggleCorreccion(${i})">
+          <span class="icono-estado">${iconoHtml}</span>
+          <span class="correccion-pregunta-texto">${p.texto.substring(0,100)}${p.texto.length > 100 ? '...' : ''}</span>
+          <span class="correccion-chevron" id="chev-${i}">▼</span>
+        </div>
+        <div class="correccion-body oculto" id="cb-${i}">
+          <div id="cb-contenido-${i}"></div>
+        </div>
+      </div>`;
+  });
+
+  for (let i = 0; i < preguntasActuales.length; i++) {
+    const p = preguntasActuales[i];
+    const resp = respuestas[i];
+    const cbContent = document.getElementById('cb-contenido-' + i);
+
+    if (p.tipo === 'mc') {
+      const letras = ['A','B','C','D'];
+      const esCorrecta = resp === p.correcta;
+      const tuResp = resp !== null ? `${letras[resp]}. ${p.opciones[resp]}` : '(sin respuesta)';
+      const respCorrecta = `${letras[p.correcta]}. ${p.opciones[p.correcta]}`;
+      cbContent.innerHTML = `
+        <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Tu respuesta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid ${esCorrecta ? '#1D9E75' : '#E24B4A'};">${tuResp}</div>
+        ${!esCorrecta ? `<p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Respuesta correcta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid #1D9E75;">${respCorrecta}</div>` : ''}
+        <p style="font-size:0.8rem;color:#888780;margin:0.75rem 0 0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Explicación</p>
+        <div class="explicacion ${esCorrecta ? '' : 'error'}" style="color:${esCorrecta ? 'var(--verde-oscuro)' : '#5F1A1A'}">${p.explicacion}</div>`;
+    } else {
+      cbContent.innerHTML = `
+        <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Tu respuesta</p>
+        <div class="respuesta-usuario" style="border-left: 3px solid #BA7517;">${resp || '(sin respuesta)'}</div>
+        <div class="cargando-ia" id="ia-load-${i}">
+          <span class="dot-anim">Evaluando tu respuesta con IA</span>
+        </div>
+        <div id="ia-result-${i}"></div>`;
+
+      evaluarConIA(i, p, resp || '');
+    }
+  }
+}
+
+function toggleCorreccion(i) {
+  const body = document.getElementById('cb-' + i);
+  const chev = document.getElementById('chev-' + i);
+  body.classList.toggle('oculto');
+  chev.textContent = body.classList.contains('oculto') ? '▼' : '▲';
+}
+
+async function evaluarConIA(idx, pregunta, respuestaEstudiante) {
+  const prompt = `Sos un profesor de Biología de secundaria. Un/a estudiante respondió la siguiente pregunta de desarrollo.
+
+PREGUNTA: ${pregunta.texto}
+
+RESPUESTA DEL ESTUDIANTE: ${respuestaEstudiante || '(no respondió)'}
+
+CONCEPTOS CLAVE ESPERADOS EN LA RESPUESTA: ${pregunta.clave}
+
+Hacé una corrección breve y amable en español. Incluí:
+1. Una calificación: "Muy bien" / "Bien" / "Parcialmente correcto" / "Falta desarrollar"
+2. Qué estuvo bien (si algo) en 1-2 oraciones.
+3. Qué faltó o estuvo incorrecto en 1-2 oraciones.
+4. Una oración de aliento final.
+
+Sé conciso, cálido y pedagógico. No uses markdown ni asteriscos.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const texto = data.content && data.content[0] ? data.content[0].text : 'No se pudo obtener la corrección.';
+
+    document.getElementById('ia-load-' + idx).style.display = 'none';
+    document.getElementById('ia-result-' + idx).innerHTML = `
+      <p style="font-size:0.8rem;color:#888780;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Corrección de la IA</p>
+      <div style="background:#E1F5EE;border-left:3px solid #1D9E75;border-radius:6px;padding:0.9rem 1rem;font-size:0.9rem;line-height:1.7;color:#04342C;">${texto}</div>
+      <p style="font-size:0.75rem;color:#888780;margin-top:0.5rem;font-style:italic;">Conceptos clave esperados: ${pregunta.clave}</p>`;
+  } catch (e) {
+    document.getElementById('ia-load-' + idx).style.display = 'none';
+    document.getElementById('ia-result-' + idx).innerHTML = `
+      <p style="color:#888780;font-style:italic;font-size:0.85rem;">No se pudo conectar con la IA para evaluar esta respuesta.<br>Conceptos esperados: ${pregunta.clave}</p>`;
+  }
+}
+
+inicializar();
+</script>
+</body>
+</html>
