@@ -612,14 +612,13 @@
       btn.textContent = 'Analizando...';
 
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('https://portalroots.pages.dev/api/chat', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
+            apiKey: apiKey,
             model: 'claude-opus-4-1',
             max_tokens: 1024,
             system: `Eres Génesis, asistente financiero IA para inversores argentinos.
