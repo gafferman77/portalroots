@@ -270,8 +270,8 @@
         </div>
 
         <div class="input-section">
-          <div id="apiSection" class="api-input">
-            <label>API Key Mistral (una sola vez)</label>
+          <div id="apiSection" class="api-input" style="display: none;">
+            <label>API Key Mistral (opcional - ya está en Vercel)</label>
             <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
             <p style="font-size: 10px; color: #52514e; margin-top: 0.2rem;">⚠️ Se guarda solo en tu navegador</p>
           </div>
@@ -347,12 +347,6 @@
   <script>
     let portfolio = JSON.parse(localStorage.getItem('gf_portfolio') || '{}');
     let analyses = JSON.parse(localStorage.getItem('gf_analyses') || '[]');
-    
-    const savedApiKey = localStorage.getItem('gf_apikey');
-    if (savedApiKey) {
-      document.getElementById('apiSection').style.display = 'none';
-      document.getElementById('apiKey').value = savedApiKey;
-    }
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -367,20 +361,8 @@
     async function sendMessage() {
       const input = document.getElementById('userInput');
       const msg = input.value.trim();
-      let apiKey = localStorage.getItem('gf_apikey');
 
       if (!msg) return;
-      
-      if (!apiKey) {
-        const keyInput = document.getElementById('apiKey').value.trim();
-        if (!keyInput) {
-          addMessage('Génesis', '⚠️ Necesito tu API key. Pegala arriba y intentá de nuevo.');
-          return;
-        }
-        apiKey = keyInput;
-        localStorage.setItem('gf_apikey', apiKey);
-        document.getElementById('apiSection').style.display = 'none';
-      }
 
       addMessage('Vos', msg);
       input.value = '';
@@ -396,7 +378,6 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            apiKey: apiKey,
             model: 'mistral-large-latest',
             max_tokens: 1024,
             system: `Eres Génesis, asistente financiero IA para inversores argentinos.

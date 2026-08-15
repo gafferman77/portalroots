@@ -1,13 +1,10 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (req.method == 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { apiKey, ...body } = req.body;
-
-  if (!apiKey) {
-    return res.status(400).json({ error: 'API key required' });
-  }
+  const apiKey = 'gzbcUaD6t7aUbzS5WlmplLrqWRVczpqg';
+  const { ...body } = req.body;
 
   try {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
