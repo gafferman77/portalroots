@@ -1,290 +1,538 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal Roots</title>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --green:#3ecf3e;
-  --yellow:#f5c200;
-  --red:#e03030;
-  --white:#f0f0e8;
-  --text-dim:#8a9a8a;
-  --muted:#3a4a3a;
-  --surface:rgba(9,14,9,0.82);
-  --border-y:rgba(245,194,0,0.22);
-}
-html,body{width:100%;min-height:100vh;color:var(--white);font-family:'EB Garamond',Georgia,serif;overflow-x:hidden;background:#050805;}
-
-.bg{
-  position:fixed;inset:0;z-index:0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(15,40,15,0.9) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 80% 30%, rgba(60,10,10,0.7) 0%, transparent 70%),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="400" height="400" filter="url(%23n)" opacity="0.06"/></svg>') repeat,
-    #080d08;
-}
-
-nav{
-  position:relative;z-index:10;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 40px;
-  border-bottom:1px solid rgba(62,207,62,0.12);
-}
-.nav-logo{display:flex;align-items:center;gap:14px;}
-.nav-logo img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid rgba(62,207,62,0.3);}
-.nav-brand{display:flex;flex-direction:column;}
-.nav-brand span:first-child{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;color:var(--green);}
-.nav-brand span:last-child{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;}
-
-main{position:relative;z-index:5;padding:0 40px;}
-
-/* ─── HERO ─── */
-.hero{
-  text-align:center;
-  padding:64px 20px 48px;
-}
-.hero-logo{width:120px;height:120px;border-radius:50%;border:2px solid rgba(62,207,62,0.25);margin:0 auto 28px;}
-.hero-eyebrow{font-size:11px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;margin-bottom:12px;}
-.hero-title{font-family:'Oswald',sans-serif;font-size:clamp(42px,7vw,72px);font-weight:700;letter-spacing:2px;line-height:1;}
-.hero-title .p{color:var(--green);}
-.hero-title .r{color:var(--yellow);}
-.hero-title .c{color:var(--red);}
-.hero-sub{font-family:'EB Garamond',serif;font-style:italic;font-size:18px;color:var(--text-dim);margin-top:16px;}
-.hero-divider{display:flex;align-items:center;justify-content:center;gap:6px;margin:28px auto 0;width:80px;}
-.hero-divider span{height:2px;flex:1;border-radius:2px;}
-.hero-divider .d1{background:var(--green);}
-.hero-divider .d2{background:var(--yellow);}
-.hero-divider .d3{background:var(--red);}
-
-/* ─── BANNER EN REFORMA ─── */
-.reform-banner{
-  position:relative;
-  max-width:640px;margin:40px auto 0;
-  display:flex;align-items:center;gap:20px;
-  background:rgba(245,194,0,0.05);
-  border:1px solid rgba(245,194,0,0.26);
-  border-radius:16px;
-  padding:24px 28px 24px 30px;
-  text-align:left;
-  overflow:hidden;
-}
-/* Lomo tricolor a la izquierda */
-.reform-banner::before{
-  content:'';position:absolute;top:0;left:0;bottom:0;width:5px;
-  background:linear-gradient(180deg,var(--green) 0 33%,var(--yellow) 33% 66%,var(--red) 66% 100%);
-}
-.reform-icon{font-size:30px;line-height:1;flex-shrink:0;}
-.reform-body{flex:1;}
-.reform-title{
-  font-family:'Oswald',sans-serif;
-  font-size:14px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
-  color:var(--yellow);margin-bottom:7px;
-}
-.reform-desc{
-  font-family:'EB Garamond',serif;
-  font-size:16px;color:var(--white);line-height:1.55;
-}
-@media(max-width:600px){
-  .reform-banner{flex-direction:column;text-align:center;gap:12px;padding:22px 20px;}
-  .reform-banner::before{width:100%;height:5px;bottom:auto;}
-}
-
-/* ─── SECTION LABELS ─── */
-.section-header{
-  display:flex;align-items:center;gap:16px;
-  margin:48px 0 24px;
-}
-.section-badge{
-  font-family:'Oswald',sans-serif;
-  font-size:10px;letter-spacing:3px;text-transform:uppercase;
-  padding:5px 14px;border-radius:20px;
-  border:1px solid;
-  white-space:nowrap;
-}
-.section-badge.private{color:var(--yellow);border-color:rgba(245,194,0,0.3);background:rgba(245,194,0,0.07);}
-.section-badge.public{color:var(--green);border-color:rgba(62,207,62,0.3);background:rgba(62,207,62,0.07);}
-.section-line{flex:1;height:1px;background:rgba(255,255,255,0.07);}
-.section-desc{font-size:13px;color:var(--text-dim);margin-bottom:20px;padding-left:2px;}
-
-/* ─── GRIDS ─── */
-.grid{
-  display:grid;
-  gap:16px;
-  margin-bottom:16px;
-}
-.grid-4{grid-template-columns:repeat(4,1fr);}
-.grid-2{grid-template-columns:repeat(2,1fr);}
-
-/* ─── CARDS ─── */
-.card{
-  background:rgba(9,14,9,0.75);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:12px;
-  padding:22px 20px;
-  display:flex;flex-direction:column;align-items:flex-start;gap:10px;
-  text-decoration:none;
-  cursor:pointer;
-  transition:border-color 0.2s,background 0.2s,transform 0.15s;
-  position:relative;overflow:hidden;
-}
-.card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  opacity:0;transition:opacity 0.2s;
-}
-.card:hover{transform:translateY(-2px);}
-
-/* Private cards — yellow accent */
-.card.private{border-top-color:rgba(245,194,0,0.2);}
-.card.private::before{background:linear-gradient(90deg,transparent,var(--yellow),transparent);}
-.card.private:hover{border-color:rgba(245,194,0,0.4);background:rgba(15,20,10,0.85);}
-.card.private:hover::before{opacity:1;}
-
-/* Public cards — green accent */
-.card.public{border-top-color:rgba(62,207,62,0.2);}
-.card.public::before{background:linear-gradient(90deg,transparent,var(--green),transparent);}
-.card.public:hover{border-color:rgba(62,207,62,0.35);background:rgba(10,18,10,0.88);}
-.card.public:hover::before{opacity:1;}
-
-/* Cine card spans 2 cols */
-.card-wide{grid-column:span 2;}
-
-.card-icon{
-  font-size:22px;line-height:1;
-  margin-bottom:2px;
-}
-.card-name{
-  font-family:'Oswald',sans-serif;
-  font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--white);
-}
-.card.private .card-name{color:var(--yellow);}
-.card.public .card-name{color:var(--green);}
-.card-desc{font-size:13px;color:var(--text-dim);line-height:1.5;}
-.card-arrow{
-  margin-top:auto;font-size:12px;letter-spacing:1px;
-  display:flex;align-items:center;gap:6px;
-  opacity:0.5;transition:opacity 0.2s;
-}
-.card:hover .card-arrow{opacity:1;}
-
-/* Cine sub-items */
-.cine-subs{
-  display:flex;flex-wrap:wrap;gap:8px;
-  margin-top:4px;
-}
-.cine-tag{
-  font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;
-  padding:3px 10px;border-radius:12px;
-  background:rgba(62,207,62,0.08);
-  border:1px solid rgba(62,207,62,0.2);
-  color:rgba(62,207,62,0.7);
-}
-.cine-tag.wip{
-  background:rgba(245,194,0,0.08);
-  border-color:rgba(245,194,0,0.2);
-  color:rgba(245,194,0,0.6);
-}
-
-/* ─── VIP MODAL ─── */
-.modal-bg{
-  display:none;position:fixed;inset:0;z-index:100;
-  background:rgba(0,0,0,0.75);
-  align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-}
-.modal-box{
-  background:rgba(10,16,10,0.97);
-  border:1px solid rgba(245,194,0,0.25);
-  border-radius:16px;
-  padding:40px;
-  width:90%;max-width:380px;
-  text-align:center;
-}
-.m-icon{font-size:32px;margin-bottom:16px;}
-.m-eye{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--yellow);margin-bottom:8px;}
-.m-title{font-family:'Oswald',sans-serif;font-size:24px;font-weight:600;color:var(--white);margin-bottom:24px;}
-.m-input{
-  width:100%;background:rgba(255,255,255,0.05);
-  border:1px solid rgba(245,194,0,0.2);border-radius:8px;
-  color:var(--white);font-family:'EB Garamond',serif;font-size:16px;
-  padding:12px 16px;text-align:center;outline:none;
-  transition:border-color 0.2s;
-}
-.m-input:focus{border-color:rgba(245,194,0,0.5);}
-.m-btn{
-  width:100%;margin-top:12px;
-  background:rgba(245,194,0,0.12);
-  border:1px solid rgba(245,194,0,0.35);
-  border-radius:8px;color:var(--yellow);
-  font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;
-  padding:12px;cursor:pointer;transition:background 0.2s;
-}
-.m-btn:hover{background:rgba(245,194,0,0.2);}
-.m-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
-.m-cancel{font-size:12px;color:var(--text-dim);margin-top:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
-.m-cancel:hover{color:var(--white);}
-
-/* ─── FOOTER ─── */
-footer{
-  position:relative;z-index:5;
-  text-align:center;padding:32px 40px;
-  border-top:1px solid rgba(255,255,255,0.05);
-  margin-top:48px;
-}
-footer p{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
-
-/* ─── RESPONSIVE ─── */
-@media(max-width:900px){
-  .grid-4{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:600px){
-  nav{padding:14px 20px;}
-  main{padding:0 16px;}
-  .grid-4,.grid-2{grid-template-columns:1fr;}
-  .card-wide{grid-column:span 1;}
-  .hero{padding:40px 10px 32px;}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Génesis Analista Financiero</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0b0b0b;
+      color: #f0efec;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .header {
+      background: #1a1a19;
+      border-bottom: 1px solid #2c2c2a;
+      padding: 1.5rem;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      font-size: 12px;
+      color: #898781;
+    }
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #2c2c2a;
+    }
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .message {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 75%;
+    }
+    .message.user {
+      background: #3266ad;
+      color: #fff;
+      align-self: flex-end;
+    }
+    .message.ai {
+      background: #1a1a19;
+      border: 1px solid #2c2c2a;
+    }
+    .input-section {
+      border-top: 1px solid #2c2c2a;
+      padding: 1rem 1.5rem;
+      background: #0b0b0b;
+    }
+    .api-input {
+      margin-bottom: 0.75rem;
+    }
+    .api-input label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #898781;
+      margin-bottom: 0.4rem;
+    }
+    .api-input input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #2c2c2a;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #1a1a19;
+      color: #f0efec;
+    }
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 0.6rem;
+      border: 1px solid #2c2c2a;
+      border-radius: 6px;
+      font-size: 12px;
+      background: #1a1a19;
+      color: #f0efec;
+    }
+    .input-group button {
+      padding: 0.6rem 1rem;
+      background: #3266ad;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .sidebar {
+      width: 200px;
+      border-left: 1px solid #2c2c2a;
+      background: #0b0b0b;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 1rem;
+      border-bottom: 1px solid #2c2c2a;
+    }
+    .sidebar-header h3 {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .tabs button {
+      flex: 1;
+      padding: 0.5rem;
+      background: transparent;
+      border: 1px solid #2c2c2a;
+      color: #f0efec;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .tabs button.active {
+      background: #3266ad;
+      border-color: #3266ad;
+      color: #fff;
+    }
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      color: #898781;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.4rem;
+      border: 1px solid #2c2c2a;
+      border-radius: 6px;
+      font-size: 11px;
+      background: #1a1a19;
+      color: #f0efec;
+    }
+    .form-group button {
+      width: 100%;
+      padding: 0.6rem;
+      background: #008300;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .result-box {
+      background: #1a1a19;
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #2c2c2a;
+      display: none;
+    }
+    .result-box.show {
+      display: block;
+    }
+    .result-box p {
+      font-size: 10px;
+      color: #898781;
+      margin: 0;
+    }
+    .result-box .amount {
+      font-size: 18px;
+      font-weight: 500;
+      color: #3266ad;
+      margin: 0.5rem 0 0;
+    }
+    .welcome-msg {
+      background: #0c447c;
+      border-left: 3px solid #3266ad;
+      padding: 1rem;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .welcome-msg strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-msg ul {
+      list-style: none;
+      margin-top: 0.5rem;
+      padding-left: 1rem;
+    }
+    .welcome-msg li {
+      font-size: 11px;
+      color: #c3c2b7;
+    }
+    .welcome-msg li:before {
+      content: "• ";
+      margin-right: 0.5rem;
+    }
+  </style>
 </head>
 <body>
-
-<div class="bg"></div>
-
-
-<main>
-
-  <!-- HERO -->
-  <section class="hero">
-    <p class="hero-eyebrow">Bienvenido a</p>
-    <h1 class="hero-title">
-      <span class="p">PORTAL</span><span class="r">ROOTS</span><span class="c">.COM</span>
-    </h1>
-    <p class="hero-sub">Un ecosistema impulsado por ideas.</p>
-    <div class="hero-divider">
-      <span class="d1"></span>
-      <span class="d2"></span>
-      <span class="d3"></span>
+  <div class="container">
+    <div class="header">
+      <h1>Génesis Analista Financiero</h1>
+      <p>IA para análisis, CEDEARs, bonos y simulaciones de inversión</p>
     </div>
 
-    <!-- BANNER: sitio en reforma -->
-    <div class="reform-banner">
-      <span class="reform-icon">🚧</span>
-      <div class="reform-body">
-        <p class="reform-title">Sitio en reforma</p>
-        <p class="reform-desc">Estamos reestructurando todo el Portal. Muy pronto vas a disfrutar de las nuevas herramientas del Portal Roots. Gracias por la paciencia. 🌱</p>
+    <div class="main">
+      <div class="chat-panel">
+        <div class="chat-container" id="chatContainer">
+          <div class="message ai welcome-msg">
+            <strong>¡Hola! Soy Génesis</strong>
+            <p>Asistente financiero IA. Pegá tu API key de Claude abajo para empezar.</p>
+            <ul>
+              <li>Analizar CEDEARs, bonos e instrumentos</li>
+              <li>Análisis técnico y fundamental</li>
+              <li>Simular inversiones a largo plazo</li>
+              <li>Guardar todos los análisis</li>
+              <li>Portafolio y historial de operaciones</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div id="apiSection" class="api-input">
+            <label>API Key Anthropic (una sola vez)</label>
+            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+            <p style="font-size: 10px; color: #52514e; margin-top: 0.2rem;">⚠️ Se guarda solo en tu navegador</p>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="userInput" placeholder="Preguntá sobre inversiones...">
+            <button id="sendBtn" onclick="sendMessage()">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h3>Herramientas</h3>
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('simulador')">Simulador</button>
+            <button class="tab-btn" onclick="switchTab('portafolio')">Portafolio</button>
+            <button class="tab-btn" onclick="switchTab('historial')">Historial</button>
+          </div>
+        </div>
+
+        <div class="sidebar-content">
+          <div id="simulador" class="tab-content active">
+            <div class="form-group">
+              <label>Monto/mes (USD)</label>
+              <input type="number" id="simMonto" value="100" min="10">
+            </div>
+            <div class="form-group">
+              <label>Años</label>
+              <input type="number" id="simYears" value="5" min="1" max="40">
+            </div>
+            <div class="form-group">
+              <label>Rendimiento anual (%)</label>
+              <input type="number" id="simReturn" value="8" min="0" max="50" step="0.5">
+            </div>
+            <div class="form-group">
+              <button onclick="runSimulator()">Calcular</button>
+            </div>
+            <div id="simResult" class="result-box">
+              <p>Después de <span id="simResultYears">5</span> años:</p>
+              <div class="amount">$<span id="simResultAmount">0</span></div>
+              <p style="margin-top: 0.5rem;">Ganancia: $<span id="simResultGain">0</span></p>
+            </div>
+          </div>
+
+          <div id="portafolio" class="tab-content">
+            <div class="form-group">
+              <label>Símbolo (ej: AAPL)</label>
+              <input type="text" id="portSymbol" placeholder="AAPL">
+            </div>
+            <div class="form-group">
+              <label>Cantidad</label>
+              <input type="number" id="portQty" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>Precio (USD)</label>
+              <input type="number" id="portPrice" value="100" step="0.01">
+            </div>
+            <div class="form-group">
+              <button onclick="addPosition()">Agregar</button>
+            </div>
+            <div id="portfolioList"></div>
+          </div>
+
+          <div id="historial" class="tab-content">
+            <div id="historialList"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
-</main>
+  <script>
+    let portfolio = JSON.parse(localStorage.getItem('gf_portfolio') || '{}');
+    let analyses = JSON.parse(localStorage.getItem('gf_analyses') || '[]');
+    
+    const savedApiKey = localStorage.getItem('gf_apikey');
+    if (savedApiKey) {
+      document.getElementById('apiSection').style.display = 'none';
+      document.getElementById('apiKey').value = savedApiKey;
+    }
 
-<footer>
-  <p>© 2025 Roots Studio · Buenos Aires · <a href="mailto:sr.eme.roots@gmail.com" style="color:var(--green);text-decoration:none;">sr.eme.roots@gmail.com</a></p>
-</footer>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      event.target.classList.add('active');
+      
+      if (tab === 'portafolio') renderPortfolio();
+      if (tab === 'historial') renderHistorial();
+    }
 
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const msg = input.value.trim();
+      let apiKey = localStorage.getItem('gf_apikey');
+
+      if (!msg) return;
+      
+      if (!apiKey) {
+        const keyInput = document.getElementById('apiKey').value.trim();
+        if (!keyInput) {
+          addMessage('Génesis', '⚠️ Necesito tu API key. Pegala arriba y intentá de nuevo.');
+          return;
+        }
+        apiKey = keyInput;
+        localStorage.setItem('gf_apikey', apiKey);
+        document.getElementById('apiSection').style.display = 'none';
+      }
+
+      addMessage('Vos', msg);
+      input.value = '';
+
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = true;
+      btn.textContent = 'Analizando...';
+
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-opus-4-1',
+            max_tokens: 1024,
+            system: `Eres Génesis, asistente financiero IA para inversores argentinos.
+
+Tu rol es EDUCATIVO, no recomendaciones personalizadas.
+
+Hacés:
+- Análisis de CEDEARs, bonos, instrumentos
+- Análisis técnico/fundamental
+- Explicaciones de mercado
+- Cálculos de escenarios
+
+NO recomendaciones personales ("en tu caso...").
+
+Sé conciso y usa datos cuando puedas.`,
+            messages: [
+              { role: 'user', content: msg }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error?.message || 'Error API');
+        }
+
+        const data = await response.json();
+        const aiMsg = data.content[0]?.text || 'Sin respuesta';
+        addMessage('Génesis', aiMsg);
+        
+        saveAnalysis(msg, aiMsg);
+      } catch (e) {
+        addMessage('Génesis', `❌ Error: ${e.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar';
+      }
+    }
+
+    function addMessage(sender, text) {
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.className = sender === 'Vos' ? 'message user' : 'message ai';
+      div.innerHTML = sender === 'Vos' ? text : `<strong>Génesis:</strong><br>${text}`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function runSimulator() {
+      const monto = parseFloat(document.getElementById('simMonto').value) || 100;
+      const years = parseInt(document.getElementById('simYears').value) || 5;
+      const rate = (parseFloat(document.getElementById('simReturn').value) || 8) / 100;
+
+      let total = 0;
+      for (let i = 0; i < years * 12; i++) {
+        total = (total + monto) * (1 + rate / 12);
+      }
+
+      const invested = monto * years * 12;
+      const gain = total - invested;
+
+      document.getElementById('simResult').classList.add('show');
+      document.getElementById('simResultYears').textContent = years;
+      document.getElementById('simResultAmount').textContent = Math.round(total);
+      document.getElementById('simResultGain').textContent = Math.round(gain);
+
+      addMessage('Génesis', `Simulación: $${invested.toFixed(0)} invertidos → $${Math.round(total)} en ${years} años (ganancia: $${Math.round(gain)})`);
+    }
+
+    function addPosition() {
+      const symbol = document.getElementById('portSymbol').value.toUpperCase();
+      const qty = parseFloat(document.getElementById('portQty').value);
+      const price = parseFloat(document.getElementById('portPrice').value);
+
+      if (!symbol || !qty || !price) return;
+
+      portfolio[symbol] = { qty, price, date: new Date().toLocaleDateString() };
+      localStorage.setItem('gf_portfolio', JSON.stringify(portfolio));
+
+      document.getElementById('portSymbol').value = '';
+      document.getElementById('portQty').value = '1';
+      document.getElementById('portPrice').value = '100';
+
+      renderPortfolio();
+    }
+
+    function renderPortfolio() {
+      const list = document.getElementById('portfolioList');
+      list.innerHTML = '';
+
+      for (let symbol in portfolio) {
+        const p = portfolio[symbol];
+        const total = p.qty * p.price;
+        const div = document.createElement('div');
+        div.style.cssText = 'background: #1a1a19; padding: 0.5rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #2c2c2a; font-size: 10px;';
+        div.innerHTML = `<strong>${symbol}</strong> x${p.qty} @ $${p.price.toFixed(2)}<div style="color: #52514e; font-size: 9px; margin-top: 0.2rem;">Total: $${total.toFixed(0)} | ${p.date}</div><button onclick="deletePos('${symbol}')" style="display: block; width: 100%; padding: 0.2rem; background: #a32d2d; color: #fff; border: none; border-radius: 3px; font-size: 9px; cursor: pointer; margin-top: 0.25rem;">Eliminar</button>`;
+        list.appendChild(div);
+      }
+
+      if (Object.keys(portfolio).length === 0) {
+        list.innerHTML = '<p style="color: #52514e; font-size: 11px;">Sin posiciones</p>';
+      }
+    }
+
+    function deletePos(symbol) {
+      delete portfolio[symbol];
+      localStorage.setItem('gf_portfolio', JSON.stringify(portfolio));
+      renderPortfolio();
+    }
+
+    function saveAnalysis(query, response) {
+      analyses.push({ query, response, date: new Date().toLocaleString() });
+      localStorage.setItem('gf_analyses', JSON.stringify(analyses.slice(-30)));
+    }
+
+    function renderHistorial() {
+      const list = document.getElementById('historialList');
+      list.innerHTML = '';
+
+      [...analyses].reverse().forEach(a => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background: #1a1a19; padding: 0.5rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid #2c2c2a; font-size: 10px; cursor: pointer;';
+        div.textContent = a.query.substring(0, 50) + (a.query.length > 50 ? '...' : '');
+        div.onclick = () => addMessage('Génesis', a.response);
+        list.appendChild(div);
+      });
+
+      if (analyses.length === 0) {
+        list.innerHTML = '<p style="color: #52514e; font-size: 11px;">Sin análisis</p>';
+      }
+    }
+
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
 </body>
 </html>
