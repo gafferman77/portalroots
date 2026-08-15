@@ -258,7 +258,7 @@
         <div class="chat-container" id="chatContainer">
           <div class="message ai welcome-msg">
             <strong>¡Hola! Soy Génesis</strong>
-            <p>Asistente financiero IA. Pegá tu API key de Claude abajo para empezar.</p>
+            <p>Asistente financiero IA. Pegá tu API key de Mistral abajo para empezar.</p>
             <ul>
               <li>Analizar CEDEARs, bonos e instrumentos</li>
               <li>Análisis técnico y fundamental</li>
@@ -271,8 +271,8 @@
 
         <div class="input-section">
           <div id="apiSection" class="api-input">
-            <label>API Key Anthropic (una sola vez)</label>
-            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+            <label>API Key Mistral (una sola vez)</label>
+            <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
             <p style="font-size: 10px; color: #52514e; margin-top: 0.2rem;">⚠️ Se guarda solo en tu navegador</p>
           </div>
 
@@ -397,7 +397,7 @@
           },
           body: JSON.stringify({
             apiKey: apiKey,
-            model: 'claude-opus-4-1',
+            model: 'mistral-large-latest',
             max_tokens: 1024,
             system: `Eres Génesis, asistente financiero IA para inversores argentinos.
 
@@ -424,7 +424,7 @@ Sé conciso y usa datos cuando puedas.`,
         }
 
         const data = await response.json();
-        const aiMsg = data.content[0]?.text || 'Sin respuesta';
+        const aiMsg = data.choices[0]?.message?.content || 'Sin respuesta';
         addMessage('Génesis', aiMsg);
         
         saveAnalysis(msg, aiMsg);
